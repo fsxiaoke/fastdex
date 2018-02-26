@@ -12,6 +12,7 @@ import fastdex.build.transform.FastdexDexMergerTransform
 import fastdex.build.transform.FastdexDexTransform
 import fastdex.build.transform.FastdexJarMergingTransform
 import fastdex.build.transform.FastdexPreDexTransform
+import fastdex.build.transform.FsdexTransform
 import fastdex.build.util.*
 import fastdex.build.variant.FastdexVariant
 import fastdex.common.utils.FileUtils
@@ -344,8 +345,10 @@ class FastdexPlugin implements Plugin<Project> {
                                             project.logger.error("==fastdex find dex transform. transform class: " + task.transform.getClass() + " . task name: " + task.name)
                                         }
 
+                                        FsdexTransform fsDexTransform = new FsdexTransform(transform,fastdexVariant)
+
                                         //代理DexTransform,实现自定义的转换
-                                        FastdexDexTransform dexTransform = new FastdexDexTransform(transform,task.getStreamOutputFolder(),fastdexVariant)
+                                        FastdexDexTransform dexTransform = new FastdexDexTransform(fsDexTransform,task.getStreamOutputFolder(),fastdexVariant)
                                         fastdexVariant.fastdexTransform = dexTransform
                                         Field field = ReflectUtils.getFieldByName(task.getClass(),'transform')
                                         field.setAccessible(true)
