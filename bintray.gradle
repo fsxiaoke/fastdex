@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 def projectName = project.hasProperty("MAVEN_ARTIFACT_ID") ? project.MAVEN_ARTIFACT_ID : project.name
 def mavenDesc = projectName
-def baseUrl = 'https://github.com/typ0520/fastdex'
+def baseUrl = 'https://github.com/fsxiaoke/fastdex'
 def siteUrl = baseUrl
 def gitUrl = "${baseUrl}.git"
 def issueUrl = "${baseUrl}/issues"
@@ -95,5 +95,10 @@ bintray {
         licenses = licenseIds
         publish = true
         publicDownloadNumbers = true
+        mavenCentralSync {
+            sync = true//是否同步到中央仓库
+            user = OSSRH_USER//见下文
+            password = OSSRH_PASSWORD//见下文
+        }
     }
 }
