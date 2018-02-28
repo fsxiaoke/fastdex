@@ -95,10 +95,5 @@ bintray {
         licenses = licenseIds
         publish = true
         publicDownloadNumbers = true
-        mavenCentralSync {
-            sync = true//是否同步到中央仓库
-            user = OSSRH_USER//见下文
-            password = OSSRH_PASSWORD//见下文
-        }
     }
 }
