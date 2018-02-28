@@ -231,44 +231,56 @@ public class FsdexTransform extends Transform {
 
         try {
             // these are either classes that should be converted directly to DEX, or DEX(s) to merge
-            Collection<File> transformInputs = new ArrayList<>();
-                    TransformInputUtil.getAllFiles(transformInvocation.getInputs());
+            Collection<File> transformInputs = new ArrayList<>()
+            Collection<File> extraTransformInputs = new ArrayList<>() //需要单独打出dex
             Collection<File> transformInputsTemp =
                     TransformInputUtil.getAllFiles(transformInvocation.getInputs());
-            println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
             def slurper = new JsonSlurper()
-            List exincludeDexList = (List)slurper.parse(new File(project.getRootDir(),"exclude_dex.json"))
+            List extraDexList = (List)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
             for(File file:transformInputsTemp){
-                String path = file.getAbsolutePath();
-                boolean contain=false;
-                for(String dex:exincludeDexList){
+                String path = file.getAbsolutePath()
+                boolean contain=false
+                for(String dex:extraDexList){
                     if(path.contains(dex)){
-                        contain=true;
+                        contain=true
+                        break
                     }
                 }
                 if(!contain){
-                    transformInputs.add(file);
+                    extraTransformInputs.add(file)
+                }else{
+                    transformInputs.add(file)
                 }
 
             }
-            println(transformInputs.toString())
             File outputDir =
                     outputProvider.getContentLocation(
                             "main",
                             getOutputTypes(),
                             TransformManager.SCOPE_FULL_PROJECT,
                             Format.DIRECTORY);
+            File extraOutputDir=new File(project.getRootDir(),"output/dexextra"); //单独打出dex的输出目录
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
-
+            com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
+            println(outputDir.getAbsolutePath())
             File mainDexList = null;
             if (mainDexListFile != null && dexingType == DexingType.LEGACY_MULTIDEX) {
                 mainDexList = mainDexListFile.getSingleFile();
             }
-            println(mainDexList)
             dexByteCodeConverter.convertByteCode(
                     transformInputs,
                     outputDir,
+                    dexingType.isMultiDex(),
+                    mainDexList,
+                    dexOptions,
+                    outputHandler,
+                    minSdkVersion);
+
+            //输出自定义的dex
+            dexByteCodeConverter.convertByteCode(
+                    extraTransformInputs,
+                    extraOutputDir,
                     dexingType.isMultiDex(),
                     mainDexList,
                     dexOptions,
