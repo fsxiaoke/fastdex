@@ -246,7 +246,7 @@ public class FsdexTransform extends Transform {
                         break
                     }
                 }
-                if(!contain){
+                if(contain){
                     extraTransformInputs.add(file)
                 }else{
                     transformInputs.add(file)
@@ -263,7 +263,7 @@ public class FsdexTransform extends Transform {
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
             com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
-            println(outputDir.getAbsolutePath())
+
             File mainDexList = null;
             if (mainDexListFile != null && dexingType == DexingType.LEGACY_MULTIDEX) {
                 mainDexList = mainDexListFile.getSingleFile();
@@ -277,15 +277,18 @@ public class FsdexTransform extends Transform {
                     outputHandler,
                     minSdkVersion);
 
-            //输出自定义的dex
-            dexByteCodeConverter.convertByteCode(
-                    extraTransformInputs,
-                    extraOutputDir,
-                    dexingType.isMultiDex(),
-                    mainDexList,
-                    dexOptions,
-                    outputHandler,
-                    minSdkVersion);
+            if(extraTransformInputs.size()>0){
+                //输出自定义的dex
+                dexByteCodeConverter.convertByteCode(
+                        extraTransformInputs,
+                        extraOutputDir,
+                        dexingType.isMultiDex(),
+                        mainDexList,
+                        dexOptions,
+                        outputHandler,
+                        minSdkVersion);
+            }
+
         } catch (Exception e) {
             throw new TransformException(e);
         }
