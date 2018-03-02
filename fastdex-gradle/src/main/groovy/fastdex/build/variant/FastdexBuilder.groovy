@@ -12,6 +12,11 @@ import fastdex.build.util.GradleUtils
 import fastdex.common.utils.FileUtils
 import fastdex.common.utils.SerializeUtils
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 /**
  * Created by tong on 17/10/31.
@@ -34,20 +39,76 @@ class FastdexBuilder {
     def injectInputAndSaveClassPath(TransformInvocation transformInvocation) {
         //所有输入的jar
         Set<String> jarInputFiles = new HashSet<>()
+
+        String provideRootPath
+        String div = "\\.gradle\\caches\\"
         for (TransformInput input : transformInvocation.getInputs()) {
             Collection<JarInput> jarInputs = input.getJarInputs()
             if (jarInputs != null) {
                 for (JarInput jarInput : jarInputs) {
-                    jarInputFiles.add(jarInput.getFile().absolutePath)
+                    String filePath = jarInput.getFile().absolutePath
+                    jarInputFiles.add(filePath)
+                    if(provideRootPath==null&&filePath.contains(div)){
+                        int index = filePath.indexOf(div)
+                        provideRootPath=filePath.substring(0,index+div.length())
+                    }
+                }
+            }
+        }
+        Set<Dependency> allDependencySet=fastdexVariant.getAllDependencies()
+        for (Dependency dependency : allDependencySet) {
+            if (dependency instanceof DefaultExternalModuleDependency) {
+                File dir = new File(provideRootPath+"modules-2\\files-2.1\\"+dependency.getGroup()+"\\"+dependency.getName
+                        ()+"\\"+dependency.getVersion())
+                String keyword = dependency.getName()+"-"+dependency.getVersion()
+                File file =searchAarOrJarFile(dir,keyword)
+                if(file!=null){
+                    jarInputFiles.add(file.getAbsolutePath())
+                }
+            } else if (dependency instanceof DefaultSelfResolvingDependency) {
+                Set<File> set = ((DefaultSelfResolvingDependency) dependency).resolve()
+                for(File file : set){
+                    jarInputFiles.add(file.getAbsolutePath())
                 }
             }
         }
         File classpathFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project,fastdexVariant.variantName), Constants.CLASSPATH_FILENAME)
         SerializeUtils.serializeTo(classpathFile,jarInputFiles)
-
         //inject dir input
         ClassInject.injectTransformInvocation(fastdexVariant,transformInvocation)
     }
+
+
+    def searchAarOrJarFile(File folder, final String keyWord) {
+        File[] subFolders = folder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+
+                if (pathname.isDirectory()
+                        || (pathname.isFile() && pathname.getName().toLowerCase().contains(keyWord.toLowerCase())
+                        &&pathname.getName().endsWith(".jar"))) {
+                    return true
+                }
+                return false
+            }
+        })
+
+        File findFile=null
+        for (int i = 0; i < subFolders.length; i++) {// 循环显示文件夹或文件
+            if (subFolders[i].isFile()) {
+                findFile=subFolders[i]
+                break
+            } else {// 如果是文件夹，则递归调用本方法
+                findFile = searchAarOrJarFile(subFolders[i], keyWord)
+                if(findFile!=null){
+                    break
+                }
+            }
+        }
+
+        return findFile
+    }
+
 
     /**
      * 全量打包时调用默认的transform，并且做后续处理

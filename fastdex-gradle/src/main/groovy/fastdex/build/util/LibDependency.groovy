@@ -95,6 +95,37 @@ class LibDependency {
         }
     }
 
+
+    private static void scanAllDependency_3_0(Project project, String applicationBuildTypeName, DependencySet
+            dependencies, Set<Dependency> allDependencySet, Set<Project> alreadyScanProjectSet) {
+        if (alreadyScanProjectSet.contains(project)) {
+            return
+        }
+        for (Dependency dependency : dependencies) {
+
+            if (dependency instanceof org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency) {
+                Project dependencyProject = dependency.getDependencyProject()
+                if (dependencyProject.plugins.hasPlugin("com.android.library")) {
+
+                    def libraryVariant = GradleUtils.getLibraryFirstVariant(dependencyProject,applicationBuildTypeName)
+                    VariantDependencies variantDeps = libraryVariant.getVariantData().getVariantDependency()
+                    LibDependency.scanAllDependency_3_0(dependencyProject,applicationBuildTypeName,variantDeps.getCompileClasspath().getAllDependencies(),allDependencySet,alreadyScanProjectSet)
+                }
+                else {
+                    final ConfigurationContainer configurations = dependencyProject.getConfigurations()
+                    final String compileClasspathName = "compileClasspath"
+                    Configuration compileClasspath = configurations.findByName(compileClasspathName)
+                    if (compileClasspath == null) {
+                        compileClasspath = configurations.maybeCreate(compileClasspathName)
+                    }
+                    LibDependency.scanAllDependency_3_0(dependencyProject,applicationBuildTypeName,compileClasspath.getAllDependencies(),allDependencySet,alreadyScanProjectSet)
+                }
+            }else{
+                allDependencySet.add(dependency)
+            }
+        }
+    }
+
     /**
      * 扫描依赖(<= 2.3.0)
      * @param library

@@ -2,6 +2,7 @@ package fastdex.build.variant
 
 import com.android.build.api.transform.TransformInvocation
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.internal.dependency.VariantDependencies
 import com.github.typ0520.fastdex.Version
 import fastdex.build.extension.FastdexExtension
 import fastdex.build.task.FastdexInstantRunTask
@@ -18,6 +19,8 @@ import fastdex.build.util.FastdexUtils
 import fastdex.common.utils.FileUtils
 import org.gradle.api.Project
 import fastdex.build.util.GradleUtils
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
 
 /**
  * Created by tong on 17/3/10.
@@ -236,6 +239,18 @@ class FastdexVariant {
         }
 
         return libraryDependencies
+    }
+
+    def getAllDependencies(){
+        VariantDependencies variantDeps = androidVariant.getVariantData().getVariantDependency()
+        Set<Dependency>  allDependencySet = Collections.synchronizedSet(new HashSet<Dependency>())
+
+        Set<Project> alreadyScanProjectSet = Collections.synchronizedSet(new HashSet<Project>())
+        String applicationBuildTypeName = androidVariant.getBuildType().buildType.getName()
+
+        LibDependency.scanAllDependency_3_0(project,applicationBuildTypeName,variantDeps.getCompileClasspath().getAllDependencies(),allDependencySet,alreadyScanProjectSet)
+
+       return allDependencySet
     }
 
     /**

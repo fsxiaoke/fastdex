@@ -208,7 +208,7 @@ class FastdexPlugin implements Plugin<Project> {
 
                     FastdexScanAptOutputTask scanAptOutputTask = project.tasks.create("fastdexScanAptOutputFor${variantName}", FastdexScanAptOutputTask)
                     scanAptOutputTask.fastdexVariant = fastdexVariant
-
+                    println("useCustomCompile:"+configuration.useCustomCompile)
                     if (configuration.useCustomCompile && hasDexCache && FileUtils.dirExists(classesDir.absolutePath)) {
                         Task customJavacTask = project.tasks.create("fastdexCustomCompile${variantName}JavaWithJavac", FastdexCustomJavacTask)
                         customJavacTask.fastdexVariant = fastdexVariant

@@ -279,6 +279,7 @@ public class FsdexTransform extends Transform {
 
             if(extraTransformInputs.size()>0){
                 //输出自定义的dex
+                println("extraInputs:"+extraTransformInputs)
                 dexByteCodeConverter.convertByteCode(
                         extraTransformInputs,
                         extraOutputDir,
