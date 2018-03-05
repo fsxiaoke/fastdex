@@ -94,14 +94,16 @@ class FastdexBuilder {
         })
 
         File findFile=null
-        for (int i = 0; i < subFolders.length; i++) {// 循环显示文件夹或文件
-            if (subFolders[i].isFile()) {
-                findFile=subFolders[i]
-                break
-            } else {// 如果是文件夹，则递归调用本方法
-                findFile = searchAarOrJarFile(subFolders[i], keyWord)
-                if(findFile!=null){
+        if(subFolders!=null){
+            for (int i = 0; i < subFolders.length; i++) {// 循环显示文件夹或文件
+                if (subFolders[i].isFile()) {
+                    findFile=subFolders[i]
                     break
+                } else {// 如果是文件夹，则递归调用本方法
+                    findFile = searchAarOrJarFile(subFolders[i], keyWord)
+                    if(findFile!=null){
+                        break
+                    }
                 }
             }
         }

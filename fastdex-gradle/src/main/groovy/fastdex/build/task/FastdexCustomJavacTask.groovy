@@ -168,9 +168,9 @@ class FastdexCustomJavacTask extends DefaultTask {
             def aptConfiguration = project.configurations.findByName("apt")
             def isAptEnabled = (project.plugins.hasPlugin("android-apt") || project.plugins.hasPlugin("com.neenbedankt.android-apt")) && aptConfiguration != null && !aptConfiguration.empty
 
-            def annotationProcessorConfig = project.configurations.findByName("annotationProcessor")
-            def isAnnotationProcessor = annotationProcessorConfig != null && !annotationProcessorConfig.empty
-
+//            def annotationProcessorConfig = project.configurations.findByName("annotationProcessor")
+//            def isAnnotationProcessor = annotationProcessorConfig != null && !annotationProcessorConfig.empty
+            def isAnnotationProcessor=false
             if ((isAptEnabled || isAnnotationProcessor) && javaCompile) {
                 project.logger.error("==fastdex found ${project.name} apt plugin enabled.")
 
