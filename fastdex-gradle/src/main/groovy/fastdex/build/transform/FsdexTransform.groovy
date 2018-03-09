@@ -1,51 +1,32 @@
 package fastdex.build.transform
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.QualifiedContent;
-import com.android.build.api.transform.QualifiedContent.ContentType;
-import com.android.build.api.transform.QualifiedContent.Scope;
-import com.android.build.api.transform.SecondaryFile;
-import com.android.build.api.transform.Transform;
-import com.android.build.api.transform.TransformException;
-import com.android.build.api.transform.TransformInvocation;
-import com.android.build.api.transform.TransformOutputProvider;
-import com.android.build.gradle.internal.LoggerWrapper;
+import com.android.annotations.NonNull
+import com.android.annotations.Nullable
+import com.android.build.api.transform.*
+import com.android.build.gradle.internal.LoggerWrapper
 import com.android.build.gradle.internal.pipeline.TransformManager
-import com.android.build.gradle.internal.transforms.DexTransform;
-import com.android.build.gradle.internal.transforms.TransformInputUtil;
-import com.android.builder.core.DexByteCodeConverter;
+import com.android.build.gradle.internal.transforms.DexTransform
+import com.android.build.gradle.internal.transforms.TransformInputUtil
+import com.android.builder.core.DexByteCodeConverter
 import com.android.builder.core.DexOptions
-import com.android.builder.core.ErrorReporter;
-import com.android.builder.dexing.DexingType;
-import com.android.builder.sdk.TargetInfo;
-import com.android.ide.common.blame.Message;
-import com.android.ide.common.blame.MessageReceiver;
-import com.android.ide.common.blame.ParsingProcessOutputHandler;
-import com.android.ide.common.blame.parser.DexParser;
-import com.android.ide.common.blame.parser.ToolOutputParser;
-import com.android.ide.common.process.ProcessOutputHandler;
-import com.android.sdklib.BuildToolInfo;
-import com.android.utils.FileUtils;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.android.builder.core.ErrorReporter
+import com.android.builder.dexing.DexingType
+import com.android.builder.sdk.TargetInfo
+import com.android.ide.common.blame.Message
+import com.android.ide.common.blame.ParsingProcessOutputHandler
+import com.android.ide.common.blame.parser.DexParser
+import com.android.ide.common.blame.parser.ToolOutputParser
+import com.android.ide.common.process.ProcessOutputHandler
+import com.android.sdklib.BuildToolInfo
+import com.google.common.base.Preconditions
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
-import fastdex.build.variant.FastdexVariant
-import org.codehaus.groovy.runtime.ScriptBytecodeAdapter
-import org.codehaus.groovy.runtime.callsite.CallSite
-import org.gradle.api.Project
-import org.json.simple.parser.JSONParser;
-
-import java.io.File;
-import java.io.IOException
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import org.gradle.api.file.FileCollection;
 import groovy.json.JsonSlurper
+import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
+
+import java.lang.reflect.Field
 
 /**
  * Created by tong on 17/11/2.
@@ -77,7 +58,7 @@ public class FsdexTransform extends Transform {
 
     final Project project;
 
-    public FsdexTransform(DexTransform base,FastdexVariant fastdexVariant) {
+    public FsdexTransform(DexTransform base,Project project) {
         Class classType = base.getClass();
         Field fieldDexOptions = classType.getDeclaredField("dexOptions");
         fieldDexOptions.setAccessible(true);
@@ -121,7 +102,7 @@ public class FsdexTransform extends Transform {
         this.errorReporter = errorReporter;
         this.minSdkVersion = minSdkVersion;
 
-        this.project = fastdexVariant.project
+        this.project = project
 //        super(dexOptions,dexingType,preDexEnabled,mainDexListFile,targetInfo,dexByteCodeConverter,messageReceiver,
 //                minSdkVersion);
     }

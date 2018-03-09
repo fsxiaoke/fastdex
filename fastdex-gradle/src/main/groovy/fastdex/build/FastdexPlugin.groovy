@@ -26,6 +26,35 @@ import java.lang.reflect.Field
  * Created by tong on 17/10/3.
  */
 class FastdexPlugin implements Plugin<Project> {
+
+    void makeExtraDex(Project project){
+            project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+                @Override
+                void graphPopulated(TaskExecutionGraph taskGraph) {
+                    for (Task task : taskGraph.getAllTasks()) {
+
+                        if (task.getProject().equals(project)
+                                && task instanceof TransformTask
+                                && task.name.startsWith("transform")) {
+                            Transform transform = ((TransformTask) task).getTransform()
+
+                            //3.0.0以下任务名叫transformClassesWithDexFor${variantName} ; 3.0.0以上任务名叫transformDexWithDexFor${variantName}
+                            if (((transform instanceof DexTransform)) && !(transform instanceof FastdexDexTransform)) {
+                                //代理DexTransform,实现自定义的转换
+                                FsdexTransform dexTransform = new FsdexTransform(transform, project)
+                                Field field = ReflectUtils.getFieldByName(task.getClass(), 'transform')
+                                field.setAccessible(true)
+                                field.set(task, dexTransform)
+                                println("change DexTransform to FsdexTransform")
+                            }
+
+                        }
+                    }
+                }
+            })
+
+    }
+
     @Override
     void apply(Project project) {
         if (!project.plugins.hasPlugin('com.android.application')) {
@@ -49,7 +78,10 @@ class FastdexPlugin implements Plugin<Project> {
             reflectDexArchive(project)
         }
 
+
+
         project.afterEvaluate {
+            makeExtraDex(project)
             def configuration = project.fastdex
             //如果是fastdex的插件触发的打包，开启hook
             if (project.hasProperty("fastdex.injected.invoked.from.ide")) {
@@ -315,7 +347,10 @@ class FastdexPlugin implements Plugin<Project> {
                     fastdexInstantRunTask.dependsOn fastdexInstantRunMarkTask
 
                     fastdexVariant.fastdexInstantRunTask = fastdexInstantRunTask
-                    boolean isDependenciesChanged = fastdexVariant.isDependenciesChanged()
+                    boolean isDependenciesChanged
+                    if(hasDexCache){
+                        isDependenciesChanged = fastdexVariant.isDependenciesChanged()
+                    }
                     println("isDependenciesChanged:"+isDependenciesChanged)
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
@@ -350,17 +385,19 @@ class FastdexPlugin implements Plugin<Project> {
                                         field.setAccessible(true)
                                         field.set(task,jarMergingTransform)
                                     }
-
                                     //3.0.0以下任务名叫transformClassesWithDexFor${variantName} ; 3.0.0以上任务名叫transformDexWithDexFor${variantName}
-                                    if (((transform instanceof DexTransform)) && !(transform instanceof FastdexDexTransform)) {
+                                    if (((transform instanceof DexTransform)||(transform instanceof FsdexTransform)) && !
+                                            (transform instanceof
+                                            FastdexDexTransform)) {
                                         if (fastdexVariant.configuration.debug) {
                                             project.logger.error("==fastdex find dex transform. transform class: " + task.transform.getClass() + " . task name: " + task.name)
                                         }
+                                        println("transform:"+transform.getClass().getName())
 
-                                        FsdexTransform fsDexTransform = new FsdexTransform(transform,fastdexVariant)
+//                                        FsdexTransform fsDexTransform = new FsdexTransform(transform,project)
 
                                         //代理DexTransform,实现自定义的转换
-                                        FastdexDexTransform dexTransform = new FastdexDexTransform(fsDexTransform,task.getStreamOutputFolder(),fastdexVariant)
+                                        FastdexDexTransform dexTransform = new FastdexDexTransform(transform,task.getStreamOutputFolder(),fastdexVariant)
                                         fastdexVariant.fastdexTransform = dexTransform
                                         Field field = ReflectUtils.getFieldByName(task.getClass(),'transform')
                                         field.setAccessible(true)
