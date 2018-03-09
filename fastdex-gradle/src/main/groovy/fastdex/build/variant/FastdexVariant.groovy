@@ -7,20 +7,11 @@ import com.github.typ0520.fastdex.Version
 import fastdex.build.extension.FastdexExtension
 import fastdex.build.task.FastdexInstantRunTask
 import fastdex.build.transform.FastdexDexTransform
-import fastdex.build.util.Constants
-import fastdex.build.util.FastdexInstantRun
-import fastdex.build.util.FastdexRuntimeException
-import fastdex.build.util.JumpException
-import fastdex.common.utils.SerializeUtils
-import fastdex.build.util.LibDependency
-import fastdex.build.util.MetaInfo
-import fastdex.build.util.ProjectSnapshoot
-import fastdex.build.util.FastdexUtils
+import fastdex.build.util.*
 import fastdex.common.utils.FileUtils
+import fastdex.common.utils.SerializeUtils
 import org.gradle.api.Project
-import fastdex.build.util.GradleUtils
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencySet
 
 /**
  * Created by tong on 17/3/10.
@@ -178,9 +169,10 @@ class FastdexVariant {
                 if (isRootProjectDirChanged) {
                     throw new JumpException("project path changed old: ${oldRootProjectPath} now: ${curRootProjectPath}")
                 }
+
                 projectSnapshoot.loadSnapshoot()
                 //检查依赖是否发生变化
-                if (projectSnapshoot.isDependenciesChanged()) {
+                if (isDependenciesChanged()) {
                     throw new JumpException("dependencies changed")
                 }
             } catch (Throwable e) {
@@ -232,6 +224,20 @@ class FastdexVariant {
         }
         fastdexInstantRun.onFastdexPrepare()
     }
+
+    boolean isDependenciesChanged,isDependenciesInited
+    def isDependenciesChanged(){
+        if(isDependenciesInited){
+            return isDependenciesChanged
+        }
+        projectSnapshoot.loadSnapshoot()
+        //检查依赖是否发生变化
+        isDependenciesChanged = projectSnapshoot.isDependenciesChanged()
+        isDependenciesInited=true
+
+        return isDependenciesChanged
+    }
+
 
     def getLibraryDependencies() {
         if (libraryDependencies == null) {

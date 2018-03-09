@@ -560,6 +560,7 @@ class FastdexUtils {
                 }
                 cmd.append(cmdArgs.get(i))
             }
+            println("command:"+cmd.toString())
             project.logger.error("\n${cmd}")
         }
 

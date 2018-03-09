@@ -68,12 +68,6 @@ class FastdexCustomJavacTask extends DefaultTask {
         def project = fastdexVariant.project
         def projectSnapshoot = fastdexVariant.projectSnapshoot
 
-        File classesDir = fastdexVariant.androidVariant.getVariantData().getScope().getJavaOutputDir()
-
-        if (!FileUtils.dirExists(classesDir.absolutePath)) {
-            project.logger.error("==fastdex miss classes dir, just ignore")
-            return
-        }
 
         SourceSetDiffResultSet sourceSetDiffResultSet = projectSnapshoot.diffResultSet
         //java文件是否发生变化
@@ -92,14 +86,53 @@ class FastdexCustomJavacTask extends DefaultTask {
             return
         }
 
+
+//        File classesDir = fastdexVariant.androidVariant.getVariantData().getScope().getJavaOutputDir()
+//
+//        if (!FileUtils.dirExists(classesDir.absolutePath)) {
+//            project.logger.error("==fastdex miss classes dir, just ignore")
+//            return
+//        }
+        long start = System.currentTimeMillis()
+        for (Map.Entry<String, Set<PathInfo>> entry : sourceSetDiffResultSet.addOrModifiedPathInfosMap.entrySet()) {
+            String key =  entry.getKey()
+            Set<PathInfo> pathInfos = entry.getValue()
+            if(pathInfos==null||pathInfos.isEmpty()){
+                continue
+            }
+            File classesDir
+            if(key.equals(project.projectDir.absolutePath)){
+                classesDir = fastdexVariant.androidVariant.getVariantData().getScope().getJavaOutputDir()
+            }else{
+                classesDir=new File(key,"\\build\\intermediates\\classes\\debug")
+            }
+            compile(classesDir,sourceSetDiffResultSet,pathInfos)
+
+        }
+
+        disableJavaCompile()
+        //保存对比信息
+        fastdexVariant.projectSnapshoot.saveDiffResultSet()
+        fastdexVariant.compiledByCustomJavac = true
+        long end = System.currentTimeMillis()
+        println("==fastdex javac success, use: ${end - start}ms")
+        project.logger.error("==fastdex javac success, use: ${end - start}ms")
+    }
+
+
+    def compile(File classesDir,SourceSetDiffResultSet sourceSetDiffResultSet,Set<PathInfo> pathInfos) {
+        if (!FileUtils.dirExists(classesDir.absolutePath)) {
+            println("==fastdex miss classes dir, just ignore")
+            return
+        }
         boolean onlyROrBuildConfig = true
         Set<PathInfo> addOrModifiedPathInfos = new HashSet<>()
 
         String packageNamePath = fastdexVariant.getOriginPackageName().split("\\.").join(File.separator)
         String rRelativePath = packageNamePath + File.separator + "R.java"
         String buildConfigRelativePath = packageNamePath + File.separator + "BuildConfig.java"
-
-        for (PathInfo pathInfo : sourceSetDiffResultSet.addOrModifiedPathInfosMap.get(project.projectDir.absolutePath)) {
+//        for (PathInfo pathInfo : sourceSetDiffResultSet.addOrModifiedPathInfosMap.get(project.projectDir.absolutePath)) {
+        for (PathInfo pathInfo : pathInfos) {
             //忽略掉kotlin文件
             if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
                 addOrModifiedPathInfos.add(pathInfo)
@@ -231,10 +264,11 @@ class FastdexCustomJavacTask extends DefaultTask {
             }
         }
 
-        long start = System.currentTimeMillis()
+
 
         FastdexUtils.runCommand(project, cmdArgs)
-
+        println(patchClassesDir.listFiles().toString())
+        println(classesDir.toString())
         if (!onlyROrBuildConfig) {
             //覆盖app/build/intermediates/classes内容
             Files.walkFileTree(patchClassesDir.toPath(),new SimpleFileVisitor<Path>(){
@@ -262,14 +296,9 @@ class FastdexCustomJavacTask extends DefaultTask {
                 }
             })
         }
-
-        disableJavaCompile()
-        //保存对比信息
-        fastdexVariant.projectSnapshoot.saveDiffResultSet()
-        fastdexVariant.compiledByCustomJavac = true
-        long end = System.currentTimeMillis()
-        project.logger.error("==fastdex javac success, use: ${end - start}ms")
     }
+
+
 
     def joinClasspath(List<String> collection) {
         StringBuilder sb = new StringBuilder()

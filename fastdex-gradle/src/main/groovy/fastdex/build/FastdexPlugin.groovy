@@ -208,8 +208,12 @@ class FastdexPlugin implements Plugin<Project> {
 
                     FastdexScanAptOutputTask scanAptOutputTask = project.tasks.create("fastdexScanAptOutputFor${variantName}", FastdexScanAptOutputTask)
                     scanAptOutputTask.fastdexVariant = fastdexVariant
+
+
                     println("useCustomCompile:"+configuration.useCustomCompile)
+                    boolean enableCompileCustomJavac=false
                     if (configuration.useCustomCompile && hasDexCache && FileUtils.dirExists(classesDir.absolutePath)) {
+                        enableCompileCustomJavac=true
                         Task customJavacTask = project.tasks.create("fastdexCustomCompile${variantName}JavaWithJavac", FastdexCustomJavacTask)
                         customJavacTask.fastdexVariant = fastdexVariant
                         customJavacTask.javaCompile = javaCompile
@@ -311,11 +315,19 @@ class FastdexPlugin implements Plugin<Project> {
                     fastdexInstantRunTask.dependsOn fastdexInstantRunMarkTask
 
                     fastdexVariant.fastdexInstantRunTask = fastdexInstantRunTask
+                    boolean isDependenciesChanged = fastdexVariant.isDependenciesChanged()
+                    println("isDependenciesChanged:"+isDependenciesChanged)
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override
                         void graphPopulated(TaskExecutionGraph taskGraph) {
                             for (Task task : taskGraph.getAllTasks()) {
+                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
+                                        ("compileDebugJavaWithJavac")){
+                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
+                                    task.setEnabled(false)
+                                }
+
                                 if (task.getProject().equals(project)
                                         && task instanceof TransformTask
                                         && task.name.startsWith("transform")
