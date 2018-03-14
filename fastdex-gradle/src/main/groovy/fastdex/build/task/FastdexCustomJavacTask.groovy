@@ -146,11 +146,7 @@ class FastdexCustomJavacTask extends DefaultTask {
             }
         }
 
-        if (addOrModifiedPathInfos.isEmpty()) {
-            project.logger.error("==fastdex no java files changed, just ignore")
-            disableJavaCompile()
-            return
-        }
+
 
         //compile java
         File androidJar = new File("${FastdexUtils.getSdkDirectory(project)}${File.separator}platforms${File.separator}${project.android.getCompileSdkVersion()}${File.separator}android.jar")

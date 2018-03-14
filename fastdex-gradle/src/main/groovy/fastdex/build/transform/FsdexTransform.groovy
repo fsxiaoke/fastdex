@@ -77,6 +77,7 @@ public class FsdexTransform extends Transform {
         fieldMainDexListFile.setAccessible(true);
         FileCollection mainDexListFile= (FileCollection)fieldMainDexListFile.get(base);
 
+
         Field fieldTargetInfo = classType.getDeclaredField("targetInfo");
         fieldTargetInfo.setAccessible(true);
         TargetInfo targetInfo= (TargetInfo)fieldTargetInfo.get(base);
@@ -92,7 +93,6 @@ public class FsdexTransform extends Transform {
         Field fieldMinSdkVersion = classType.getDeclaredField("minSdkVersion");
         fieldMinSdkVersion.setAccessible(true);
         int minSdkVersion= (Integer)fieldMinSdkVersion.get(base);
-
         this.dexOptions = dexOptions;
         this.dexingType = dexingType;
         this.preDexEnabled = preDexEnabled;
@@ -103,21 +103,64 @@ public class FsdexTransform extends Transform {
         this.minSdkVersion = minSdkVersion;
 
         this.project = project
-//        super(dexOptions,dexingType,preDexEnabled,mainDexListFile,targetInfo,dexByteCodeConverter,messageReceiver,
-//                minSdkVersion);
     }
 
-//    public MyTransform(
-//            @NonNull DexOptions dexOptions,
-//            @NonNull DexingType dexingType,
-//            boolean preDexEnabled,
-//            @Nullable FileCollection mainDexListFile,
-//            @NonNull TargetInfo targetInfo,
-//            @NonNull DexByteCodeConverter dexByteCodeConverter,
-//            @NonNull MessageReceiver messageReceiver,
-//            int minSdkVersion) {
-//        super(dexOptions,dexingType,preDexEnabled,mainDexListFile,targetInfo,dexByteCodeConverter,messageReceiver,minSdkVersion)
-//    }
+    /**
+     * 读取本地普通文件，将其转化为一个字符串数组
+     * @return
+     */
+    public ArrayList<String> getPathList(String filepath){
+        try{
+            String temp = null;
+            File f = new File(filepath);
+            String adn="";
+            //指定读取编码用于读取中文
+            InputStreamReader read = new InputStreamReader(new FileInputStream(f),"utf-8");
+            ArrayList<String> readList = new ArrayList<String>();
+            BufferedReader reader=new BufferedReader(read);
+            //bufReader = new BufferedReader(new FileReader(filepath));
+            while((temp=reader.readLine())!=null &&!"".equals(temp)){
+                readList.add(temp);
+            }
+            read.close();
+            return readList;
+        }catch (Exception e) {
+            // TODO: handle exception
+            logger.info("读取文件--->失败！- 原因：文件路径错误或者文件不存在");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void writeFile(List<String> list,File file){
+        try {
+            FileWriter fw = new FileWriter(file, true)
+            BufferedWriter bw = new BufferedWriter(fw)
+            for(int i = 0;i<list.size();i++){
+                String path =  list.get(i)
+                bw.write(path+"\r\n")
+             }
+            bw.close();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean containPath(String path,List<String> list){
+        boolean ret=false
+        if(list!=null){
+            for (String pre: list){
+                if(path.startsWith(pre)){
+                    ret=true
+                    break
+                }
+            }
+        }
+        return ret
+    }
+
+
 
     @NonNull
     @Override
@@ -195,6 +238,32 @@ public class FsdexTransform extends Transform {
     public void transform(@NonNull TransformInvocation transformInvocation)
             throws TransformException, IOException, InterruptedException {
 
+        def slurper = new JsonSlurper()
+        Map map = (Map)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
+
+        if(mainDexListFile.getSingleFile()!=null&&mainDexListFile.getSingleFile().exists()){
+            List exMaindexList
+            if(map.containsKey("paths")){
+                exMaindexList=(List)map.get("paths")
+            }
+            println("change maindexlist")
+            println("exMaindexList:"+exMaindexList.toString())
+            ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
+            List<String> writeList = new ArrayList<>()
+            for (String path :list){
+                if(containPath(path,exMaindexList)){
+                }else{
+                    writeList.add(path)
+                }
+            }
+
+            mainDexListFile.getSingleFile().delete()
+            mainDexListFile.getSingleFile().createNewFile()
+            writeFile(writeList,mainDexListFile.getSingleFile())
+
+        }
+
+
         TransformOutputProvider outputProvider = transformInvocation.getOutputProvider();
         Preconditions.checkNotNull(outputProvider,
                 "Missing output object for transform " + getName());
@@ -216,8 +285,10 @@ public class FsdexTransform extends Transform {
             Collection<File> extraTransformInputs = new ArrayList<>() //需要单独打出dex
             Collection<File> transformInputsTemp =
                     TransformInputUtil.getAllFiles(transformInvocation.getInputs());
-            def slurper = new JsonSlurper()
-            List extraDexList = (List)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
+            List extraDexList
+            if(map.containsKey("libs")){
+                extraDexList=(List)map.get("libs")
+            }
             for(File file:transformInputsTemp){
                 String path = file.getAbsolutePath()
                 boolean contain=false
@@ -234,6 +305,7 @@ public class FsdexTransform extends Transform {
                 }
 
             }
+
             File outputDir =
                     outputProvider.getContentLocation(
                             "main",
@@ -244,7 +316,6 @@ public class FsdexTransform extends Transform {
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
             com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
-
             File mainDexList = null;
             if (mainDexListFile != null && dexingType == DexingType.LEGACY_MULTIDEX) {
                 mainDexList = mainDexListFile.getSingleFile();
@@ -257,7 +328,6 @@ public class FsdexTransform extends Transform {
                     dexOptions,
                     outputHandler,
                     minSdkVersion);
-
             if(extraTransformInputs.size()>0){
                 //输出自定义的dex
                 println("extraInputs:"+extraTransformInputs)
