@@ -241,7 +241,8 @@ public class FsdexTransform extends Transform {
         def slurper = new JsonSlurper()
         Map map = (Map)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
 
-        if(mainDexListFile.getSingleFile()!=null&&mainDexListFile.getSingleFile().exists()){
+        if(mainDexListFile.getSingleFile()!=null&&mainDexListFile.getSingleFile().exists()&&mainDexListFile
+                .getSingleFile().getAbsolutePath().endsWith("release/maindexlist.txt")){
             List exMaindexList
             if(map.containsKey("paths")){
                 exMaindexList=(List)map.get("paths")
@@ -294,6 +295,7 @@ public class FsdexTransform extends Transform {
                 boolean contain=false
                 for(String dex:extraDexList){
                     if(path.contains(dex)){
+                        extraDexList.remove(dex)
                         contain=true
                         break
                     }
