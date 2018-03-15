@@ -357,11 +357,11 @@ class FastdexPlugin implements Plugin<Project> {
                         @Override
                         void graphPopulated(TaskExecutionGraph taskGraph) {
                             for (Task task : taskGraph.getAllTasks()) {
-//                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
-//                                        ("compileDebugJavaWithJavac")){
-//                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
-//                                    task.setEnabled(false)
-//                                }
+                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
+                                        ("compileDebugJavaWithJavac")){
+                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
+                                    task.setEnabled(false)
+                                }
 
                                 if (task.getProject().equals(project)
                                         && task instanceof TransformTask

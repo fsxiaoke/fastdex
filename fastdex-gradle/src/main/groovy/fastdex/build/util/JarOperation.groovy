@@ -61,16 +61,17 @@ class JarOperation implements Opcodes {
         File tempDir = new File(fastdexVariant.buildDir,"temp")
         FileUtils.deleteDir(tempDir)
         FileUtils.ensumeDir(tempDir)
-
         Set<File> moudleDirectoryInputFiles = new HashSet<>()
         DiffResultSet diffResultSet = fastdexVariant.projectSnapshoot.diffResultSet
         for (File file : jarInputFiles) {
             String projectPath = jarAndProjectPathMap.get(file.absolutePath)
             List<String> patterns = diffResultSet.addOrModifiedClassesMap.get(projectPath)
             if (patterns != null && !patterns.isEmpty()) {
+
                 File classesDir = new File(tempDir,"${file.name}-${System.currentTimeMillis()}")
+                File sourceDir=new File(projectPath,"\\build\\intermediates\\classes\\debug")
                 project.copy {
-                    from project.zipTree(file)
+                    from sourceDir
                     for (String pattern : patterns) {
                         include pattern
                     }

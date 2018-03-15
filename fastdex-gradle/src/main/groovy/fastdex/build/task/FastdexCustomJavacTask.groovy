@@ -106,7 +106,12 @@ class FastdexCustomJavacTask extends DefaultTask {
             }else{
                 classesDir=new File(key,"\\build\\intermediates\\classes\\debug")
             }
-            compile(classesDir,sourceSetDiffResultSet,pathInfos)
+            int index = key.lastIndexOf("\\")
+            String patchClassPath = "patch-classes"
+            if(index>0&&(index+1)<key.length()){
+                patchClassPath = key.substring(index+1,key.length())
+            }
+            compile(classesDir,patchClassPath,sourceSetDiffResultSet,pathInfos)
 
         }
 
@@ -120,7 +125,8 @@ class FastdexCustomJavacTask extends DefaultTask {
     }
 
 
-    def compile(File classesDir,SourceSetDiffResultSet sourceSetDiffResultSet,Set<PathInfo> pathInfos) {
+    def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet,Set<PathInfo>
+            pathInfos) {
         if (!FileUtils.dirExists(classesDir.absolutePath)) {
             println("==fastdex miss classes dir, just ignore")
             return
@@ -152,7 +158,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         File androidJar = new File("${FastdexUtils.getSdkDirectory(project)}${File.separator}platforms${File.separator}${project.android.getCompileSdkVersion()}${File.separator}android.jar")
 
         //class输出目录
-        File patchClassesDir = new File(FastdexUtils.getWorkDir(project,fastdexVariant.variantName),"patch-classes")
+        File patchClassesDir = new File(FastdexUtils.getWorkDir(project,fastdexVariant.variantName),patchClassPath)
         FileUtils.deleteDir(patchClassesDir)
         FileUtils.ensumeDir(patchClassesDir)
 

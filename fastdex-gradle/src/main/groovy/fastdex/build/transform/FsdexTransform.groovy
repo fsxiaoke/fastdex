@@ -240,9 +240,9 @@ public class FsdexTransform extends Transform {
 
         def slurper = new JsonSlurper()
         Map map = (Map)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
-
-        if(mainDexListFile.getSingleFile()!=null&&mainDexListFile.getSingleFile().exists()&&mainDexListFile
-                .getSingleFile().getAbsolutePath().endsWith("release/maindexlist.txt")){
+        File singleFile = mainDexListFile.getSingleFile()
+        if(singleFile!=null&&singleFile.exists()&&(singleFile.getAbsolutePath().endsWith("release/maindexlist.txt")
+                ||singleFile.getAbsolutePath().endsWith("release\\maindexlist.txt"))){
             List exMaindexList
             if(map.containsKey("paths")){
                 exMaindexList=(List)map.get("paths")
@@ -258,9 +258,9 @@ public class FsdexTransform extends Transform {
                 }
             }
 
-            mainDexListFile.getSingleFile().delete()
-            mainDexListFile.getSingleFile().createNewFile()
-            writeFile(writeList,mainDexListFile.getSingleFile())
+            singleFile.delete()
+            singleFile.createNewFile()
+            writeFile(writeList,singleFile)
 
         }
 
@@ -314,7 +314,7 @@ public class FsdexTransform extends Transform {
                             getOutputTypes(),
                             TransformManager.SCOPE_FULL_PROJECT,
                             Format.DIRECTORY);
-            File extraOutputDir=new File(project.getRootDir(),"output/dexextra"); //单独打出dex的输出目录
+            File extraOutputDir=new File(project.getRootDir(),"output\\dexextra"); //单独打出dex的输出目录
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
             com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
