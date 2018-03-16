@@ -41,7 +41,7 @@ class FastdexBuilder {
         Set<String> jarInputFiles = new HashSet<>()
 
         String provideRootPath
-        String div = "\\.gradle\\caches\\"
+        String div = File.separator+".gradle"+File.separator+"caches"+File.separator
         for (TransformInput input : transformInvocation.getInputs()) {
             Collection<JarInput> jarInputs = input.getJarInputs()
             if (jarInputs != null) {
@@ -58,8 +58,9 @@ class FastdexBuilder {
         Set<Dependency> allDependencySet=fastdexVariant.getAllDependencies()
         for (Dependency dependency : allDependencySet) {
             if (dependency instanceof DefaultExternalModuleDependency) {
-                File dir = new File(provideRootPath+"modules-2\\files-2.1\\"+dependency.getGroup()+"\\"+dependency.getName
-                        ()+"\\"+dependency.getVersion())
+                File dir = new File(provideRootPath+"modules-2"+File.separator+"files-2.1"+File.separator+dependency.getGroup()
+                        +File.separator+dependency.getName
+                        ()+File.separator+dependency.getVersion())
                 String keyword = dependency.getName()+"-"+dependency.getVersion()
                 File file =searchAarOrJarFile(dir,keyword)
                 if(file!=null){
