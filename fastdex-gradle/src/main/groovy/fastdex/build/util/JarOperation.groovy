@@ -69,7 +69,7 @@ class JarOperation implements Opcodes {
             if (patterns != null && !patterns.isEmpty()) {
 
                 File classesDir = new File(tempDir,"${file.name}-${System.currentTimeMillis()}")
-                File sourceDir=new File(projectPath,"\\build\\intermediates\\classes\\debug")
+                File sourceDir=new File(projectPath,"build"+File.separator+"intermediates"+File.separator+"classes"+File.separator+"debug")
                 project.copy {
                     from sourceDir
                     for (String pattern : patterns) {

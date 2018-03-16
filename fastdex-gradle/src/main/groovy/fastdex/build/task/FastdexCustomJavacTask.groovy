@@ -104,9 +104,9 @@ class FastdexCustomJavacTask extends DefaultTask {
             if(key.equals(project.projectDir.absolutePath)){
                 classesDir = fastdexVariant.androidVariant.getVariantData().getScope().getJavaOutputDir()
             }else{
-                classesDir=new File(key,"\\build\\intermediates\\classes\\debug")
+                classesDir=new File(key,"build"+File.separator+"intermediates"+File.separator+"classes"+File.separator+"debug")
             }
-            int index = key.lastIndexOf("\\")
+            int index = key.lastIndexOf(File.separator)
             String patchClassPath = "patch-classes"
             if(index>0&&(index+1)<key.length()){
                 patchClassPath = key.substring(index+1,key.length())

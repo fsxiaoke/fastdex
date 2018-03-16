@@ -251,8 +251,7 @@ public class FsdexTransform extends Transform {
             throws TransformException, IOException, InterruptedException {
 
         File singleFile = mainDexListFile.getSingleFile()
-        if(singleFile!=null&&singleFile.exists()&&(singleFile.getAbsolutePath().endsWith("release/maindexlist.txt")
-                ||singleFile.getAbsolutePath().endsWith("release\\maindexlist.txt"))){
+        if(singleFile!=null&&singleFile.exists()&&singleFile.getAbsolutePath().endsWith("release"+File.separator+"maindexlist.txt")){
 
             String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
             if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
@@ -322,7 +321,7 @@ public class FsdexTransform extends Transform {
                             getOutputTypes(),
                             TransformManager.SCOPE_FULL_PROJECT,
                             Format.DIRECTORY);
-            File extraOutputDir=new File(project.getRootDir(),"output\\dexextra"); //单独打出dex的输出目录
+            File extraOutputDir=new File(project.getRootDir(),"output"+File.separator+"dexextra"); //单独打出dex的输出目录
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
             com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
