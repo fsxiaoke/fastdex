@@ -147,11 +147,23 @@ public class FsdexTransform extends Transform {
         }
     }
 
-    public boolean containPath(String path,List<String> list){
+    public boolean startsWith(String path,String[] list){
         boolean ret=false
         if(list!=null){
             for (String pre: list){
                 if(path.startsWith(pre)){
+                    ret=true
+                    break
+                }
+            }
+        }
+        return ret
+    }
+    public boolean containsPath(String path,String[] list){
+        boolean ret=false
+        if(list!=null){
+            for (String pre: list){
+                if(path.contains(pre)){
                     ret=true
                     break
                 }
@@ -238,30 +250,29 @@ public class FsdexTransform extends Transform {
     public void transform(@NonNull TransformInvocation transformInvocation)
             throws TransformException, IOException, InterruptedException {
 
-        def slurper = new JsonSlurper()
-        Map map = (Map)slurper.parse(new File(project.getRootDir(),"extra_dex.json"))
         File singleFile = mainDexListFile.getSingleFile()
         if(singleFile!=null&&singleFile.exists()&&(singleFile.getAbsolutePath().endsWith("release/maindexlist.txt")
                 ||singleFile.getAbsolutePath().endsWith("release\\maindexlist.txt"))){
-            List exMaindexList
-            if(map.containsKey("paths")){
-                exMaindexList=(List)map.get("paths")
-            }
-            println("change maindexlist")
-            println("exMaindexList:"+exMaindexList.toString())
-            ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
-            List<String> writeList = new ArrayList<>()
-            for (String path :list){
-                if(containPath(path,exMaindexList)){
-                }else{
-                    writeList.add(path)
+
+            String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
+            if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
+                System.out.println("there is no add releaseExMaindex ")
+            }else{
+                String[] releaseExMaindexList = releaseExMaindex.split(",")
+                println("releaseExMaindexList:"+releaseExMaindexList.toString())
+                ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
+                List<String> writeList = new ArrayList<>()
+                for (String path :list){
+                    if(startsWith(path,releaseExMaindexList)){
+                    }else{
+                        writeList.add(path)
+                    }
                 }
+
+                singleFile.delete()
+                singleFile.createNewFile()
+                writeFile(writeList,singleFile)
             }
-
-            singleFile.delete()
-            singleFile.createNewFile()
-            writeFile(writeList,singleFile)
-
         }
 
 
@@ -286,26 +297,23 @@ public class FsdexTransform extends Transform {
             Collection<File> extraTransformInputs = new ArrayList<>() //需要单独打出dex
             Collection<File> transformInputsTemp =
                     TransformInputUtil.getAllFiles(transformInvocation.getInputs());
-            List extraDexList
-            if(map.containsKey("libs")){
-                extraDexList=(List)map.get("libs")
+            String debugExDex = (String) project.properties.get("debugExDexList")
+            String[] debugExDexList
+            if (debugExDex == null || debugExDex.length() == 0) {
+                System.out.println("there is no add debugExDex ")
+                debugExDexList = {}
+            }else{
+                debugExDexList = debugExDex.split(",")
+                println("debugExDexList:"+debugExDexList.toString())
             }
+
             for(File file:transformInputsTemp){
                 String path = file.getAbsolutePath()
-                boolean contain=false
-                for(String dex:extraDexList){
-                    if(path.contains(dex)){
-                        extraDexList.remove(dex)
-                        contain=true
-                        break
-                    }
-                }
-                if(contain){
+                if(containsPath(path,debugExDexList)){
                     extraTransformInputs.add(file)
                 }else{
                     transformInputs.add(file)
                 }
-
             }
 
             File outputDir =
@@ -322,6 +330,7 @@ public class FsdexTransform extends Transform {
             if (mainDexListFile != null && dexingType == DexingType.LEGACY_MULTIDEX) {
                 mainDexList = mainDexListFile.getSingleFile();
             }
+            println("transformInputs:"+transformInputs)
             dexByteCodeConverter.convertByteCode(
                     transformInputs,
                     outputDir,
@@ -332,7 +341,7 @@ public class FsdexTransform extends Transform {
                     minSdkVersion);
             if(extraTransformInputs.size()>0){
                 //输出自定义的dex
-                println("extraInputs:"+extraTransformInputs)
+                println("extraTransformInputs:"+extraTransformInputs)
                 dexByteCodeConverter.convertByteCode(
                         extraTransformInputs,
                         extraOutputDir,

@@ -1,11 +1,13 @@
 package fastdex.build
 
 import com.android.build.api.transform.Transform
+import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.JarMergingTransform
 import fastdex.build.extension.FastdexExtension
+import fastdex.build.fs.AutoDependencies
 import fastdex.build.task.*
 import fastdex.build.transform.FastdexDexBuilderTransform
 import fastdex.build.transform.FastdexDexMergerTransform
@@ -52,14 +54,16 @@ class FastdexPlugin implements Plugin<Project> {
                     }
                 }
             })
-
     }
+
+
 
     @Override
     void apply(Project project) {
         if (!project.plugins.hasPlugin('com.android.application')) {
             throw new GradleException('Android Application plugin required')
         }
+        new AutoDependencies().apply(project)
 
         project.extensions.create('fastdex', FastdexExtension)
         FastdexBuildListener.addByProject(project)
