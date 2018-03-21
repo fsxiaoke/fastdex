@@ -356,13 +356,22 @@ class FastdexPlugin implements Plugin<Project> {
                         isDependenciesChanged = fastdexVariant.isDependenciesChanged()
                     }
                     println("isDependenciesChanged:"+isDependenciesChanged)
+                    String customJavacModule = (String) project.properties.get("customJavacModule")
+                    List customJavacModuleList=null
+                    if (customJavacModule == null || customJavacModule.length() == 0) {
+                        System.out.println("there is no add customJavacModule ")
+                    }else {
+                        customJavacModuleList = customJavacModule.split(",")
+                        println("customJavacModuleList:" + customJavacModuleList.toString())
+                    }
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override
                         void graphPopulated(TaskExecutionGraph taskGraph) {
                             for (Task task : taskGraph.getAllTasks()) {
                                 if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
-                                        ("compileDebugJavaWithJavac")){
+                                        ("compileDebugJavaWithJavac")
+                                        &&customJavacModuleList!=null&&customJavacModuleList.contains(task.getProject().getName())){
                                     println("disable task:"+task.getProject().getName()+":"+task.getName())
                                     task.setEnabled(false)
                                 }
