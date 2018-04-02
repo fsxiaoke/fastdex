@@ -251,7 +251,7 @@ public class FsdexTransform extends Transform {
             throws TransformException, IOException, InterruptedException {
 
         File singleFile = mainDexListFile.getSingleFile()
-        if(singleFile!=null&&singleFile.exists()&&singleFile.getAbsolutePath().endsWith("release"+File.separator+"maindexlist.txt")){
+        if(singleFile!=null&&singleFile.exists()){
 
             String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
             if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
