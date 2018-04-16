@@ -244,12 +244,10 @@ class FastdexPlugin implements Plugin<Project> {
 
                     FastdexScanAptOutputTask scanAptOutputTask = project.tasks.create("fastdexScanAptOutputFor${variantName}", FastdexScanAptOutputTask)
                     scanAptOutputTask.fastdexVariant = fastdexVariant
-
-
                     println("useCustomCompile:"+configuration.useCustomCompile)
-                    boolean enableCompileCustomJavac=false
+//                    boolean enableCompileCustomJavac=false
                     if (configuration.useCustomCompile && hasDexCache && FileUtils.dirExists(classesDir.absolutePath)) {
-                        enableCompileCustomJavac=true
+//                        enableCompileCustomJavac=true
                         Task customJavacTask = project.tasks.create("fastdexCustomCompile${variantName}JavaWithJavac", FastdexCustomJavacTask)
                         customJavacTask.fastdexVariant = fastdexVariant
                         customJavacTask.javaCompile = javaCompile
@@ -351,31 +349,30 @@ class FastdexPlugin implements Plugin<Project> {
                     fastdexInstantRunTask.dependsOn fastdexInstantRunMarkTask
 
                     fastdexVariant.fastdexInstantRunTask = fastdexInstantRunTask
-                    boolean isDependenciesChanged
-                    if(hasDexCache){
-                        isDependenciesChanged = fastdexVariant.isDependenciesChanged()
-                    }
-                    println("isDependenciesChanged:"+isDependenciesChanged)
-                    String customJavacModule = (String) project.properties.get("customJavacModule")
-                    List customJavacModuleList=null
-                    if (customJavacModule == null || customJavacModule.length() == 0) {
-                        System.out.println("there is no add customJavacModule ")
-                    }else {
-                        customJavacModuleList = customJavacModule.split(",")
-                        println("customJavacModuleList:" + customJavacModuleList.toString())
-                    }
+//                    boolean isDependenciesChanged
+//                    if(hasDexCache){
+//                        isDependenciesChanged = fastdexVariant.isDependenciesChanged()
+//                    }
+//                    println("isDependenciesChanged:"+isDependenciesChanged)
+//                    String customJavacModule = (String) project.properties.get("customJavacModule")
+//                    List customJavacModuleList=null
+//                    if (customJavacModule == null || customJavacModule.length() == 0) {
+//                        System.out.println("there is no add customJavacModule ")
+//                    }else {
+//                        customJavacModuleList = customJavacModule.split(",")
+//                        println("customJavacModuleList:" + customJavacModuleList.toString())
+//                    }
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override
                         void graphPopulated(TaskExecutionGraph taskGraph) {
                             for (Task task : taskGraph.getAllTasks()) {
-                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
-                                        ("compileDebugJavaWithJavac")
-                                        &&customJavacModuleList!=null&&customJavacModuleList.contains(task.getProject().getName())){
-                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
-                                    task.setEnabled(false)
-                                }
-
+//                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
+//                                        ("compileDebugJavaWithJavac")
+//                                        &&customJavacModuleList!=null&&customJavacModuleList.contains(task.getProject().getName())){
+//                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
+//                                    task.setEnabled(false)
+//                                }
                                 if (task.getProject().equals(project)
                                         && task instanceof TransformTask
                                         && task.name.startsWith("transform")
