@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
+import fastdex.build.util.ZipUtils
+import fastdex.build.util.FileUtils
 import groovy.json.JsonSlurper
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -250,29 +252,29 @@ public class FsdexTransform extends Transform {
     public void transform(@NonNull TransformInvocation transformInvocation)
             throws TransformException, IOException, InterruptedException {
 
-        File singleFile = mainDexListFile.getSingleFile()
-        if(singleFile!=null&&singleFile.exists()){
-
-            String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
-            if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
-                System.out.println("there is no add releaseExMaindex ")
-            }else{
-                String[] releaseExMaindexList = releaseExMaindex.split(",")
-                println("releaseExMaindexList:"+releaseExMaindexList.toString())
-                ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
-                List<String> writeList = new ArrayList<>()
-                for (String path :list){
-                    if(startsWith(path,releaseExMaindexList)){
-                    }else{
-                        writeList.add(path)
-                    }
-                }
-
-                singleFile.delete()
-                singleFile.createNewFile()
-                writeFile(writeList,singleFile)
-            }
-        }
+//        File singleFile = mainDexListFile.getSingleFile()
+//        if(singleFile!=null&&singleFile.exists()){
+//
+//            String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
+//            if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
+//                System.out.println("there is no add releaseExMaindex ")
+//            }else{
+//                String[] releaseExMaindexList = releaseExMaindex.split(",")
+//                println("releaseExMaindexList:"+releaseExMaindexList.toString())
+//                ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
+//                List<String> writeList = new ArrayList<>()
+//                for (String path :list){
+//                    if(startsWith(path,releaseExMaindexList)){
+//                    }else{
+//                        writeList.add(path)
+//                    }
+//                }
+//
+//                singleFile.delete()
+//                singleFile.createNewFile()
+//                writeFile(writeList,singleFile)
+//            }
+//        }
 
 
         TransformOutputProvider outputProvider = transformInvocation.getOutputProvider();
@@ -312,6 +314,33 @@ public class FsdexTransform extends Transform {
                     extraTransformInputs.add(file)
                 }else{
                     transformInputs.add(file)
+                }
+            }
+
+            if(transformInputs.size()==1&&extraTransformInputs.size()==0){
+                String extraDexPaths = (String) project.properties.get("extraDexPathList")
+                if (extraDexPaths != null) {
+                    String[] extraDexPathList = extraDexPaths.split(",")
+                    File jarFile = transformInputs.get(0);
+                    File jarOutputPath =  new File(project.getRootDir(),"output"+File.separator+"jaroutput");
+                    File mainJarOutDir = new File(jarOutputPath,"main");
+                    File extraJarOutDir = new File(jarOutputPath,"extra");
+                    FileUtils.delete(mainJarOutDir)
+                    FileUtils.delete(extraJarOutDir)
+                    ZipUtils.deCompress(jarFile,mainJarOutDir);
+                    for(String path:extraDexPathList){
+                        String newPath = path.substring(0,path.lastIndexOf("/"))
+                        FileUtils.move(new File(mainJarOutDir,path),new File(extraJarOutDir,newPath))
+                    }
+                    File mainJarFile = new File(jarOutputPath,"main.jar");
+                    File extraJarFile = new File(jarOutputPath,"extra.jar");
+                    FileUtils.delete(mainJarFile)
+                    FileUtils.delete(extraJarFile)
+                    ZipUtils.compress(mainJarFile,mainJarOutDir.listFiles())
+                    ZipUtils.compress(extraJarFile,extraJarOutDir.listFiles())
+                    transformInputs.clear()
+                    transformInputs.add(mainJarFile)
+                    extraTransformInputs.add(extraJarFile)
                 }
             }
 
