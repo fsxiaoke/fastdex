@@ -338,6 +338,8 @@ public class FsdexTransform extends Transform {
                     FileUtils.delete(extraJarFile)
                     ZipUtils.compress(mainJarFile,mainJarOutDir.listFiles())
                     ZipUtils.compress(extraJarFile,extraJarOutDir.listFiles())
+                    FileUtils.delete(mainJarOutDir)
+                    FileUtils.delete(extraJarOutDir)
                     transformInputs.clear()
                     transformInputs.add(mainJarFile)
                     extraTransformInputs.add(extraJarFile)
