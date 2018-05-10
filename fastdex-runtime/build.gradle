@@ -44,7 +44,7 @@ project.afterEvaluate {
             File inputDirectory = project.file("build/intermediates/classes/release")
             new File(inputDirectory,"com").deleteDir()
             project.copy {
-                from project.rootProject.file("fastdex-common/build/classes/main/fastdex")
+                from project.rootProject.file("fastdex-common/build/classes/java/main/fastdex")
                 into project.file("build/intermediates/classes/release/fastdex")
             }
 
