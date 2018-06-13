@@ -308,20 +308,12 @@ public class FsdexTransform extends Transform {
                 println("debugExDexList:"+debugExDexList.toString())
             }
 
-            for(File file:transformInputsTemp){
-                String path = file.getAbsolutePath()
-                if(containsPath(path,debugExDexList)){
-                    extraTransformInputs.add(file)
-                }else{
-                    transformInputs.add(file)
-                }
-            }
-
-            if(transformInputs.size()==1&&extraTransformInputs.size()==0){
+            if(transformInputsTemp.size()==1){
                 String extraDexPaths = (String) project.properties.get("extraDexPathList")
+                println("extraDexPaths:"+extraDexPaths.toString())
                 if (extraDexPaths != null) {
                     String[] extraDexPathList = extraDexPaths.split(",")
-                    File jarFile = transformInputs.get(0);
+                    File jarFile = transformInputsTemp.get(0);
                     File jarOutputPath =  new File(project.getRootDir(),"output"+File.separator+"jaroutput");
                     File mainJarOutDir = new File(jarOutputPath,"main");
                     File extraJarOutDir = new File(jarOutputPath,"extra");
@@ -340,11 +332,25 @@ public class FsdexTransform extends Transform {
                     ZipUtils.compress(extraJarFile,extraJarOutDir.listFiles())
                     FileUtils.delete(mainJarOutDir)
                     FileUtils.delete(extraJarOutDir)
-                    transformInputs.clear()
                     transformInputs.add(mainJarFile)
                     extraTransformInputs.add(extraJarFile)
                 }
+            }else {
+
+                for(File file:transformInputsTemp){
+                    String path = file.getAbsolutePath()
+                    if(containsPath(path,debugExDexList)){
+                        extraTransformInputs.add(file)
+                    }else{
+                        transformInputs.add(file)
+                    }
+                }
+
+
             }
+            println("transformInputs:"+transformInputs.toString())
+            println("extraTransformInputs:"+extraTransformInputs.toString())
+
 
             File outputDir =
                     outputProvider.getContentLocation(
@@ -383,6 +389,7 @@ public class FsdexTransform extends Transform {
             }
 
         } catch (Exception e) {
+            println(e.getMessage())
             throw new TransformException(e);
         }
     }
