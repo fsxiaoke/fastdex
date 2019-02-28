@@ -8,13 +8,13 @@ import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.JarMergingTransform
 import fastdex.build.extension.FastdexExtension
 import fastdex.build.fs.AutoDependencies
+import fastdex.build.fs.FsdexTransform
 import fastdex.build.task.*
 import fastdex.build.transform.FastdexDexBuilderTransform
 import fastdex.build.transform.FastdexDexMergerTransform
 import fastdex.build.transform.FastdexDexTransform
 import fastdex.build.transform.FastdexJarMergingTransform
 import fastdex.build.transform.FastdexPreDexTransform
-import fastdex.build.transform.FsdexTransform
 import fastdex.build.util.*
 import fastdex.build.variant.FastdexVariant
 import fastdex.common.utils.FileUtils
