@@ -1,4 +1,4 @@
-package fastdex.build.transform
+package fastdex.build.fs
 
 import com.android.annotations.NonNull
 import com.android.annotations.Nullable
@@ -140,7 +140,7 @@ public class FsdexTransform extends Transform {
             BufferedWriter bw = new BufferedWriter(fw)
             for(int i = 0;i<list.size();i++){
                 String path =  list.get(i)
-                bw.write(path+"\r\n")
+                bw.write("\r\n"+path)
              }
             bw.close();
             fw.close();
@@ -252,29 +252,28 @@ public class FsdexTransform extends Transform {
     public void transform(@NonNull TransformInvocation transformInvocation)
             throws TransformException, IOException, InterruptedException {
 
-//        File singleFile = mainDexListFile.getSingleFile()
-//        if(singleFile!=null&&singleFile.exists()){
+        File singleFile = mainDexListFile.getSingleFile()
+        if(singleFile!=null&&singleFile.exists()){
 //
-//            String releaseExMaindex = (String) project.properties.get("releaseExMaindexlist")
-//            if (releaseExMaindex == null || releaseExMaindex.length() == 0) {
-//                System.out.println("there is no add releaseExMaindex ")
-//            }else{
-//                String[] releaseExMaindexList = releaseExMaindex.split(",")
-//                println("releaseExMaindexList:"+releaseExMaindexList.toString())
+            String maindex = (String) project.properties.get("maindexlist")
+            if (maindex == null || maindex.length() == 0) {
+                System.out.println("there is no add maindex ")
+                writeFile(maindex,singleFile)
+            }else{
+                String[] maindexList = maindex.split(",")
+                println("maindexList:"+maindexList.toString())
 //                ArrayList<String> list = getPathList(mainDexListFile.getSingleFile().getAbsolutePath())
-//                List<String> writeList = new ArrayList<>()
-//                for (String path :list){
-//                    if(startsWith(path,releaseExMaindexList)){
-//                    }else{
-//                        writeList.add(path)
-//                    }
-//                }
-//
+                List<String> writeList = new ArrayList<>()
+                for (String path :maindexList){
+                    writeList.add(path)
+                }
 //                singleFile.delete()
 //                singleFile.createNewFile()
-//                writeFile(writeList,singleFile)
-//            }
-//        }
+                writeFile(writeList,singleFile)
+            }
+        }
+
+        super.transform(transformInvocation)
 
 
         TransformOutputProvider outputProvider = transformInvocation.getOutputProvider();
@@ -294,62 +293,65 @@ public class FsdexTransform extends Transform {
 
         try {
             // these are either classes that should be converted directly to DEX, or DEX(s) to merge
-            Collection<File> transformInputs = new ArrayList<>()
-            Collection<File> extraTransformInputs = new ArrayList<>() //需要单独打出dex
-            Collection<File> transformInputsTemp =
-                    TransformInputUtil.getAllFiles(transformInvocation.getInputs());
-            String debugExDex = (String) project.properties.get("debugExDexList")
-            String[] debugExDexList
-            if (debugExDex == null || debugExDex.length() == 0) {
-                System.out.println("there is no add debugExDex ")
-                debugExDexList = {}
-            }else{
-                debugExDexList = debugExDex.split(",")
-                println("debugExDexList:"+debugExDexList.toString())
-            }
-
-            if(transformInputsTemp.size()==1){
-                String extraDexPaths = (String) project.properties.get("extraDexPathList")
-                println("extraDexPaths:"+extraDexPaths.toString())
-                if (extraDexPaths != null) {
-                    String[] extraDexPathList = extraDexPaths.split(",")
-                    File jarFile = transformInputsTemp.get(0);
-                    File jarOutputPath =  new File(project.getRootDir(),"output"+File.separator+"jaroutput");
-                    File mainJarOutDir = new File(jarOutputPath,"main");
-                    File extraJarOutDir = new File(jarOutputPath,"extra");
-                    FileUtils.delete(mainJarOutDir)
-                    FileUtils.delete(extraJarOutDir)
-                    ZipUtils.deCompress(jarFile,mainJarOutDir);
-                    for(String path:extraDexPathList){
-                        String newPath = path.substring(0,path.lastIndexOf("/"))
-                        FileUtils.move(new File(mainJarOutDir,path),new File(extraJarOutDir,newPath))
-                    }
-                    File mainJarFile = new File(jarOutputPath,"main.jar");
-                    File extraJarFile = new File(jarOutputPath,"extra.jar");
-                    FileUtils.delete(mainJarFile)
-                    FileUtils.delete(extraJarFile)
-                    ZipUtils.compress(mainJarFile,mainJarOutDir.listFiles())
-                    ZipUtils.compress(extraJarFile,extraJarOutDir.listFiles())
-                    FileUtils.delete(mainJarOutDir)
-                    FileUtils.delete(extraJarOutDir)
-                    transformInputs.add(mainJarFile)
-                    extraTransformInputs.add(extraJarFile)
-                }
-            }else {
-
-                for(File file:transformInputsTemp){
-                    String path = file.getAbsolutePath()
-                    if(containsPath(path,debugExDexList)){
-                        extraTransformInputs.add(file)
-                    }else{
-                        transformInputs.add(file)
-                    }
-                }
-
-
-            }
+            Collection<File> transformInputs = TransformInputUtil.getAllFiles(transformInvocation.getInputs());
+//            Collection<File> transformInputs = new ArrayList<>()
+//            Collection<File> extraTransformInputs = new ArrayList<>() //需要单独打出dex
+//            Collection<File> transformInputsTemp =
+//                    TransformInputUtil.getAllFiles(transformInvocation.getInputs());
+//            String debugExDex = (String) project.properties.get("debugExDexList")
+//            String[] debugExDexList
+//            if (debugExDex == null || debugExDex.length() == 0) {
+//                System.out.println("there is no add debugExDex ")
+//                debugExDexList = {}
+//            }else{
+//                debugExDexList = debugExDex.split(",")
+//                println("debugExDexList:"+debugExDexList.toString())
+//            }
+//
+//            if(transformInputsTemp.size()==1){
+//                String extraDexPaths = (String) project.properties.get("extraDexPathList")
+//                println("extraDexPaths:"+extraDexPaths.toString())
+//                if (extraDexPaths != null) {
+//                    String[] extraDexPathList = extraDexPaths.split(",")
+//                    File jarFile = transformInputsTemp.get(0);
+//                    File jarOutputPath =  new File(project.getRootDir(),"output"+File.separator+"jaroutput");
+//                    File mainJarOutDir = new File(jarOutputPath,"main");
+//                    File extraJarOutDir = new File(jarOutputPath,"extra");
+//                    FileUtils.delete(mainJarOutDir)
+//                    FileUtils.delete(extraJarOutDir)
+//                    ZipUtils.deCompress(jarFile,mainJarOutDir);
+//                    for(String path:extraDexPathList){
+//                        String newPath = path.substring(0,path.lastIndexOf("/"))
+//                        FileUtils.move(new File(mainJarOutDir,path),new File(extraJarOutDir,newPath))
+//                    }
+//                    File mainJarFile = new File(jarOutputPath,"main.jar");
+//                    File extraJarFile = new File(jarOutputPath,"extra.jar");
+//                    FileUtils.delete(mainJarFile)
+//                    FileUtils.delete(extraJarFile)
+//                    ZipUtils.compress(mainJarFile,mainJarOutDir.listFiles())
+//                    ZipUtils.compress(extraJarFile,extraJarOutDir.listFiles())
+//                    FileUtils.delete(mainJarOutDir)
+//                    FileUtils.delete(extraJarOutDir)
+//                    transformInputs.add(mainJarFile)
+//                    extraTransformInputs.add(extraJarFile)
+//                }else{
+//                    transformInputs = transformInputsTemp;
+//                }
+//            }else {
+//
+//                for(File file:transformInputsTemp){
+//                    String path = file.getAbsolutePath()
+//                    if(containsPath(path,debugExDexList)){
+//                        extraTransformInputs.add(file)
+//                    }else{
+//                        transformInputs.add(file)
+//                    }
+//                }
+//
+//
+//            }
             println("transformInputs:"+transformInputs.toString())
-            println("extraTransformInputs:"+extraTransformInputs.toString())
+//            println("extraTransformInputs:"+extraTransformInputs.toString())
 
 
             File outputDir =
@@ -358,10 +360,10 @@ public class FsdexTransform extends Transform {
                             getOutputTypes(),
                             TransformManager.SCOPE_FULL_PROJECT,
                             Format.DIRECTORY);
-            File extraOutputDir=new File(project.getRootDir(),"output"+File.separator+"dexextra"); //单独打出dex的输出目录
+//            File extraOutputDir=new File(project.getRootDir(),"output"+File.separator+"dexextra"); //单独打出dex的输出目录
             // this deletes and creates the dir for the output
             com.android.utils.FileUtils.cleanOutputDir(outputDir);
-            com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
+//            com.android.utils.FileUtils.cleanOutputDir(extraOutputDir);
             File mainDexList = null;
             if (mainDexListFile != null && dexingType == DexingType.LEGACY_MULTIDEX) {
                 mainDexList = mainDexListFile.getSingleFile();
@@ -375,18 +377,18 @@ public class FsdexTransform extends Transform {
                     dexOptions,
                     outputHandler,
                     minSdkVersion);
-            if(extraTransformInputs.size()>0){
-                //输出自定义的dex
-                println("extraTransformInputs:"+extraTransformInputs)
-                dexByteCodeConverter.convertByteCode(
-                        extraTransformInputs,
-                        extraOutputDir,
-                        dexingType.isMultiDex(),
-                        mainDexList,
-                        dexOptions,
-                        outputHandler,
-                        minSdkVersion);
-            }
+//            if(extraTransformInputs.size()>0){
+//                //输出自定义的dex
+//                println("extraTransformInputs:"+extraTransformInputs)
+//                dexByteCodeConverter.convertByteCode(
+//                        extraTransformInputs,
+//                        extraOutputDir,
+//                        dexingType.isMultiDex(),
+//                        mainDexList,
+//                        dexOptions,
+//                        outputHandler,
+//                        minSdkVersion);
+//            }
 
         } catch (Exception e) {
             println(e.getMessage())
