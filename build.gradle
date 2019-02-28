@@ -13,12 +13,67 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
         classpath 'com.github.dcendents:android-maven-plugin:1.2'
     }
+
+
+
+
 }
+
+Properties props = new Properties()
+try {
+    props.load(project.rootProject.file('local.properties').newDataInputStream())
+} catch (Throwable e) {
+    e.printStackTrace()
+}
+
+def bintray_user = props.getProperty("BINTRAY_USER","")
+def bintray_key = props.getProperty("BINTRAY_KEY","")
+
+
 
 allprojects {
     repositories {
         jcenter()
         maven { url 'https://maven.google.com' }
+    }
+
+
+}
+
+gradle.ext.mavenUrl = "http://maven.firstshare.cn/artifactory/libs-release-local"
+gradle.ext.mavenDevUrl = "http://maven.firstshare.cn/artifactory/libs-snapshot-local"
+gradle.ext.mavenUserName = "deployer"
+gradle.ext.mavenPwd = "fxiaoke"
+
+subprojects {
+
+    apply plugin: 'maven'
+
+    buildscript {
+        /**
+         * 发布到maven
+         */
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: gradle.mavenUrl) {
+                        authentication(userName: gradle.mavenUserName, password: gradle.mavenPwd)
+                    }
+
+                    snapshotRepository(url: gradle.mavenDevUrl) {
+                        authentication(userName: gradle.mavenUserName, password: gradle.mavenPwd)
+                    }
+
+
+                }
+            }
+            doFirst {
+                repositories.mavenDeployer.pom.version = "$project.version"
+                repositories.mavenDeployer.pom.artifactId = "$project.name"
+                repositories.mavenDeployer.pom.groupId = "$project.groupId"
+            }
+        }
+
     }
 }
 
