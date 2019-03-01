@@ -134,6 +134,19 @@ public class FsdexTransform extends Transform {
         }
     }
 
+    public void cleanFile(File file){
+        try {
+            FileWriter fw = new FileWriter(file, false)
+            BufferedWriter bw = new BufferedWriter(fw)
+            bw.write("");
+            bw.flush();
+            bw.close();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void writeFile(List<String> list,File file){
         try {
             FileWriter fw = new FileWriter(file, true)
@@ -257,8 +270,9 @@ public class FsdexTransform extends Transform {
 //
             String maindex = (String) project.properties.get("maindexlist")
             if (maindex == null || maindex.length() == 0) {
+                System.out.println(singleFile.getAbsolutePath())
                 System.out.println("there is no add maindex ")
-                writeFile(new ArrayList<String>(),singleFile)
+                cleanFile(singleFile)
             }else{
                 String[] maindexList = maindex.split(",")
                 println("maindexList:"+maindexList.toString())
