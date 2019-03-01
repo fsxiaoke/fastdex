@@ -258,7 +258,7 @@ public class FsdexTransform extends Transform {
             String maindex = (String) project.properties.get("maindexlist")
             if (maindex == null || maindex.length() == 0) {
                 System.out.println("there is no add maindex ")
-                writeFile(maindex,singleFile)
+                writeFile(new ArrayList<String>(),singleFile)
             }else{
                 String[] maindexList = maindex.split(",")
                 println("maindexList:"+maindexList.toString())
