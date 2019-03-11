@@ -4,6 +4,8 @@ import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
+import com.android.build.gradle.internal.pipeline.ImmutableJarInput
+import com.android.build.gradle.internal.pipeline.ImmutableTransformInput
 import fastdex.build.lib.snapshoot.api.DiffResultSet
 import fastdex.build.variant.FastdexVariant
 import fastdex.common.utils.FileUtils
@@ -24,63 +26,101 @@ import java.util.zip.ZipOutputStream
  */
 class JarOperation implements Opcodes {
     static void generatePatchJar(FastdexVariant fastdexVariant, TransformInvocation transformInvocation, File patchJar) throws IOException {
-        Set<LibDependency> libraryDependencies = fastdexVariant.getLibraryDependencies()
-        Map<String,String> jarAndProjectPathMap = new HashMap<>()
-        List<File> projectJarFiles = new ArrayList<>()
-        //获取所有依赖工程的输出jar (compile project(':xxx'))
-        for (LibDependency dependency : libraryDependencies) {
-            projectJarFiles.add(dependency.jarFile)
-            jarAndProjectPathMap.put(dependency.jarFile.absolutePath,dependency.dependencyProject.projectDir.absolutePath)
-        }
-
-        //所有的class目录
-        Set<File> directoryInputFiles = new HashSet<>()
-        //所有library工程输出的jar
-        Set<File> jarInputFiles = new HashSet<>()
-        for (TransformInput input : transformInvocation.getInputs()) {
-            Collection<DirectoryInput> directoryInputs = input.getDirectoryInputs()
-            if (directoryInputs != null) {
-                for (DirectoryInput directoryInput : directoryInputs) {
-                    directoryInputFiles.add(directoryInput.getFile())
-                }
-            }
-
-            if (!projectJarFiles.isEmpty()) {
-                Collection<JarInput> jarInputs = input.getJarInputs()
-                if (jarInputs != null) {
-                    for (JarInput jarInput : jarInputs) {
-                        if (projectJarFiles.contains(jarInput.getFile())) {
-                            jarInputFiles.add(jarInput.getFile())
-                        }
+        if(fastdexVariant.configuration.useCustomCompile){
+            Set<File> directoryInputFiles = new HashSet<>()
+            File classPath = FastdexUtils.getWorkDir(fastdexVariant.project,fastdexVariant.variantName)
+            if(classPath!=null){
+                for (File file : classPath.listFiles()) {
+                    if(file.exists()){
+                        directoryInputFiles.add(file)
                     }
                 }
             }
-        }
+            JarOperation.generatePatchJar(fastdexVariant,directoryInputFiles,null,patchJar)
+        }else{
+            Set<LibDependency> libraryDependencies = fastdexVariant.getLibraryDependencies()
+            Map<String,String> jarAndProjectPathMap = new HashMap<>()
+            List<File> projectJarFiles = new ArrayList<>()
+            //获取所有依赖工程的输出jar (compile project(':xxx'))
+            for (LibDependency dependency : libraryDependencies) {
+                projectJarFiles.add(dependency.jarFile)
+                jarAndProjectPathMap.put(dependency.jarFile.absolutePath,dependency.dependencyProject.projectDir.absolutePath)
+            }
 
-        def project = fastdexVariant.project
-        File tempDir = new File(fastdexVariant.buildDir,"temp")
-        FileUtils.deleteDir(tempDir)
-        FileUtils.ensumeDir(tempDir)
+            //所有的class目录
+            Set<File> directoryInputFiles = new HashSet<>()
+            //所有library工程输出的jar
+            Set<File> jarInputFiles = new HashSet<>()
+            for (TransformInput input : transformInvocation.getInputs()) {
+                Collection<DirectoryInput> directoryInputs = input.getDirectoryInputs()
+                if (directoryInputs != null) {
+                    for (DirectoryInput directoryInput : directoryInputs) {
+                        directoryInputFiles.add(directoryInput.getFile())
+                    }
+                }
 
-        Set<File> moudleDirectoryInputFiles = new HashSet<>()
-        DiffResultSet diffResultSet = fastdexVariant.projectSnapshoot.diffResultSet
-        for (File file : jarInputFiles) {
-            String projectPath = jarAndProjectPathMap.get(file.absolutePath)
-            List<String> patterns = diffResultSet.addOrModifiedClassesMap.get(projectPath)
-            if (patterns != null && !patterns.isEmpty()) {
+//            if (!projectJarFiles.isEmpty()) {
+//                Collection<JarInput> jarInputs = input.getJarInputs()
+//                if (jarInputs != null) {
+//                    for (JarInput jarInput : jarInputs) {
+//                        if (projectJarFiles.contains(jarInput.getFile())) {
+//                            jarInputFiles.add(jarInput.getFile())
+//                        }
+//                    }
+//                }
+//            }
+
+                //xiongtj 添加cc后 依赖的jar包变成了0.jar,1.jar.....188.jar
+                for (JarInput jarInput : input.getJarInputs()) {
+                    jarInputFiles.add(jarInput.getFile())
+                }
+
+            }
+
+
+
+            def project = fastdexVariant.project
+            File tempDir = new File(fastdexVariant.buildDir,"temp")
+            FileUtils.deleteDir(tempDir)
+            FileUtils.ensumeDir(tempDir)
+
+
+            //xiongtj 添加cc后 依赖的jar包变成了0.jar,1.jar.....188.jar
+            for (File file : jarInputFiles) {
                 File classesDir = new File(tempDir,"${file.name}-${System.currentTimeMillis()}")
                 project.copy {
                     from project.zipTree(file)
-                    for (String pattern : patterns) {
-                        include pattern
-                    }
                     into classesDir
                 }
-                moudleDirectoryInputFiles.add(classesDir)
                 directoryInputFiles.add(classesDir)
             }
+
+            Set<File> moudleDirectoryInputFiles = new HashSet<>()
+//        DiffResultSet diffResultSet = fastdexVariant.projectSnapshoot.diffResultSet
+//        for (File file : jarInputFiles) {
+//            String projectPath = jarAndProjectPathMap.get(file.absolutePath)
+//            List<String> patterns = diffResultSet.addOrModifiedClassesMap.get(projectPath)
+//            if (patterns != null && !patterns.isEmpty()) {
+//                File classesDir = new File(tempDir,"${file.name}-${System.currentTimeMillis()}")
+//                println(classesDir)
+//                project.copy {
+//                    from project.zipTree(file)
+//                    for (String pattern : patterns) {
+//                        include pattern
+//                    }
+//                    into classesDir
+//                }
+//                moudleDirectoryInputFiles.add(classesDir)
+//                directoryInputFiles.add(classesDir)
+//            }
+//        }
+            JarOperation.generatePatchJar(fastdexVariant,directoryInputFiles,moudleDirectoryInputFiles,patchJar)
         }
-        JarOperation.generatePatchJar(fastdexVariant,directoryInputFiles,moudleDirectoryInputFiles,patchJar)
+
+
+
+
+
     }
 
     /**
@@ -120,7 +160,6 @@ class JarOperation implements Opcodes {
         FileUtils.ensumeDir(patchJar.getParentFile())
 
         boolean willExeDexMerge = fastdexVariant.willExecDexMerge()
-
         ZipOutputStream outputJarStream = null
         try {
             outputJarStream = new ZipOutputStream(new FileOutputStream(patchJar))

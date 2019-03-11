@@ -64,6 +64,7 @@ class ClassInject implements Opcodes {
         }
         injectDirectoryInputFiles(fastdexVariant,directoryInputFiles)
         injectJarInputFiles(fastdexVariant,jarInputFiles)
+
     }
 
     /**
@@ -109,9 +110,10 @@ class ClassInject implements Opcodes {
             project.logger.error("==fastdex projectJarFiles : ${projectJarFiles}")
         }
         for (File file : jarInputFiles) {
-            if (!projectJarFiles.contains(file)) {
-                continue
-            }
+            //java8 生成的jar在desugar 0.jar 1.jar.....120.jar...
+//            if (!projectJarFiles.contains(file)) {
+//                continue
+//            }
             project.logger.error("==fastdex inject jar: ${file}")
             ClassInject.injectJar(fastdexVariant,file,file)
         }

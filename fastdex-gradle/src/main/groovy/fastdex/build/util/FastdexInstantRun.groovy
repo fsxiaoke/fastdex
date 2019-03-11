@@ -123,7 +123,7 @@ class FastdexInstantRun {
     }
 
     def onManifestChanged() {
-
+        manifestChanged = true
     }
 
     def onFastdexPrepare() {

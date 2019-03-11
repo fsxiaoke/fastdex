@@ -1,5 +1,6 @@
 package fastdex.build.variant
 
+import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformInput
@@ -40,39 +41,19 @@ class FastdexBuilder {
         //所有输入的jar
         Set<String> jarInputFiles = new HashSet<>()
 
-        String provideRootPath
-        String div = File.separator+".gradle"+File.separator+"caches"+File.separator
+
         for (TransformInput input : transformInvocation.getInputs()) {
             Collection<JarInput> jarInputs = input.getJarInputs()
             if (jarInputs != null) {
                 for (JarInput jarInput : jarInputs) {
-                    String filePath = jarInput.getFile().absolutePath
-                    jarInputFiles.add(filePath)
-                    if(provideRootPath==null&&filePath.contains(div)){
-                        int index = filePath.indexOf(div)
-                        provideRootPath=filePath.substring(0,index+div.length())
-                    }
+                    jarInputFiles.add(jarInput.getFile().absolutePath)
                 }
             }
         }
-        Set<Dependency> allDependencySet=fastdexVariant.getAllDependencies()
-        for (Dependency dependency : allDependencySet) {
-            if (dependency instanceof DefaultExternalModuleDependency) {
-                File dir = new File(provideRootPath+"modules-2"+File.separator+"files-2.1"+File.separator+dependency.getGroup()
-                        +File.separator+dependency.getName
-                        ()+File.separator+dependency.getVersion())
-                String keyword = dependency.getName()+"-"+dependency.getVersion()
-                File file =searchAarOrJarFile(dir,keyword)
-                if(file!=null){
-                    jarInputFiles.add(file.getAbsolutePath())
-                }
-            } else if (dependency instanceof DefaultSelfResolvingDependency) {
-                Set<File> set = ((DefaultSelfResolvingDependency) dependency).resolve()
-                for(File file : set){
-                    jarInputFiles.add(file.getAbsolutePath())
-                }
-            }
-        }
+
+        Set<String> dependList = GradleUtils.getCurrentDependList(fastdexVariant.project,fastdexVariant.androidVariant)
+        jarInputFiles.addAll(dependList)
+
         File classpathFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project,fastdexVariant.variantName), Constants.CLASSPATH_FILENAME)
         SerializeUtils.serializeTo(classpathFile,jarInputFiles)
         //inject dir input

@@ -34,7 +34,7 @@ class FastdexPatchTask extends DefaultTask {
             return
         }
         if (fastdexInstantRun.manifestChanged) {
-            fastdexVariant.project.logger.error("==fastdex instant run disable, manifest.xml changed")
+            fastdexVariant.project.logger.error("==fastdex instant run enable, manifest.xml changed")
             return
         }
 
