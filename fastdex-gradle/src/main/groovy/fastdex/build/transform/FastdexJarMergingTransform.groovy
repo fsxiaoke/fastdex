@@ -22,6 +22,9 @@ class FastdexJarMergingTransform extends TransformProxy {
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, IOException, InterruptedException {
         if (fastdexVariant.hasDexCache) {
+            if(fastdexVariant.configuration.useCustomCompile){
+                return
+            }
             if (fastdexVariant.projectSnapshoot.diffResultSet.isJavaFileChanged()) {
                 FileUtils.cleanDir(streamOutputFolder)
 

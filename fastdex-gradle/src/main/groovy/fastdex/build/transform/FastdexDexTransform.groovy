@@ -61,8 +61,10 @@ class FastdexDexTransform extends TransformProxy {
         if (!mainDexListFile.exists()) {
             mainDexListFile.createNewFile()
         }
-
         if (fastdexVariant.hasDexCache) {
+            if(fastdexVariant.configuration.useCustomCompile){
+                return
+            }
             project.logger.error("\n==fastdex patch transform start,we will generate dex file")
             if (fastdexVariant.projectSnapshoot.diffResultSet.isJavaFileChanged()) {
                 //生成补丁jar包

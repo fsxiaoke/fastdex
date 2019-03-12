@@ -29,8 +29,7 @@ class FastdexScanAptOutputTask extends DefaultTask {
         boolean needDiff = fastdexVariant.hasDexCache && !fastdexVariant.compiledByCustomJavac
         //开启自定义的javac任务正常是不需要在扫描apt目录的，但是如果执行了dex merge会在保存一次当前快照，所以这种情况下要重新加回去
         //xiongtj 使用compiledByCustomJavac 时要保证每次都执行FastdexPreDexTransform
-        boolean needScanApt = !fastdexVariant.hasDexCache || needDiff ||fastdexVariant.compiledByCustomJavac||
-                (fastdexVariant.compiledByCustomJavac && fastdexVariant.willExecDexMerge())
+        boolean needScanApt = !fastdexVariant.hasDexCache || needDiff || (fastdexVariant.compiledByCustomJavac && fastdexVariant.willExecDexMerge())
 
         if (needScanApt) {
             File aptDir = GradleUtils.getAptOutputDir(fastdexVariant.androidVariant)

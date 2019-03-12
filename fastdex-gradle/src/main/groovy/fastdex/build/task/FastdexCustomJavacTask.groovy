@@ -6,6 +6,7 @@ import fastdex.build.util.Constants
 import fastdex.build.util.FastdexRuntimeException
 import fastdex.build.util.FastdexUtils
 import fastdex.build.util.GradleUtils
+import fastdex.build.util.JarOperation
 import fastdex.common.ShareConstants
 import fastdex.common.utils.FileUtils
 import fastdex.build.variant.FastdexVariant
@@ -93,6 +94,7 @@ class FastdexCustomJavacTask extends DefaultTask {
 //            project.logger.error("==fastdex miss classes dir, just ignore")
 //            return
 //        }
+        println(project.toString())
         long start = System.currentTimeMillis()
         for (Map.Entry<String, Set<PathInfo>> entry : sourceSetDiffResultSet.addOrModifiedPathInfosMap.entrySet()) {
             String key =  entry.getKey()
@@ -114,14 +116,29 @@ class FastdexCustomJavacTask extends DefaultTask {
             compile(classesDir,patchClassPath,sourceSetDiffResultSet,pathInfos)
 
         }
-
         disableJavaCompile()
         //保存对比信息
         fastdexVariant.projectSnapshoot.saveDiffResultSet()
         fastdexVariant.compiledByCustomJavac = true
         long end = System.currentTimeMillis()
-        println("==fastdex javac success, use: ${end - start}ms")
         project.logger.error("==fastdex javac success, use: ${end - start}ms")
+
+
+
+        //补丁jar
+        File patchJar = new File(FastdexUtils.getBuildDir(project,fastdexVariant.variantName),
+                Constants.PATCH_JAR)
+        //生成补丁jar
+        JarOperation.generatePatchJar(fastdexVariant,null,patchJar)
+        project.logger.error("==fastdex generatePatchJar success")
+        String flavor = fastdexVariant.androidVariant.getFlavorName()
+        String buildType= fastdexVariant.androidVariant.getBuildType()
+
+        File dexOutputDir = new File(project.buildDir.getAbsolutePath()+File.separator+"intermediates"
+                +File.separator+"transforms"+File.separator+"dex"
+                +File.separator+flavor+File.separator+buildType)
+        fastdexVariant.fastdexBuilder.patchBuild(null,patchJar,dexOutputDir)
+        project.logger.error("==fastdex patchBuild success")
     }
 
 
@@ -254,7 +271,8 @@ class FastdexCustomJavacTask extends DefaultTask {
         cmdArgs.add("-s")
         cmdArgs.add(aptOutputDir)
         cmdArgs.add("-d")
-        cmdArgs.add(onlyROrBuildConfig ? classesDir.absolutePath : patchClassesDir.absolutePath)
+//        cmdArgs.add(onlyROrBuildConfig ? classesDir.absolutePath : patchClassesDir.absolutePath)//R文件同样打到work目录下
+        cmdArgs.add(patchClassesDir.absolutePath)
 
         for (PathInfo pathInfo : addOrModifiedPathInfos) {
             if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
@@ -269,9 +287,10 @@ class FastdexCustomJavacTask extends DefaultTask {
 
 
         FastdexUtils.runCommand(project, cmdArgs)
+        println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
         println(patchClassesDir.listFiles().toString())
         println(classesDir.toString())
-        if (!onlyROrBuildConfig) {
+//        if (!onlyROrBuildConfig) { //R 文件一样覆盖
             //覆盖app/build/intermediates/classes内容
             Files.walkFileTree(patchClassesDir.toPath(),new SimpleFileVisitor<Path>(){
                 @Override
@@ -297,7 +316,7 @@ class FastdexCustomJavacTask extends DefaultTask {
                     return FileVisitResult.CONTINUE
                 }
             })
-        }
+//        }
     }
 
 

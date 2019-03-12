@@ -19,6 +19,9 @@ class FastdexDexMergerTransform extends TransformProxy {
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, IOException, InterruptedException {
         if (fastdexVariant.hasDexCache) {
+            if(fastdexVariant.configuration.useCustomCompile){
+                return
+            }
             if (fastdexVariant.projectSnapshoot.diffResultSet.isJavaFileChanged()) {
                 File patchJar = new File(fastdexVariant.dexBuilderOutputFolder,Constants.PATCH_JAR)
                 fastdexBuilder.patchBuild(base,patchJar,streamOutputFolder)
