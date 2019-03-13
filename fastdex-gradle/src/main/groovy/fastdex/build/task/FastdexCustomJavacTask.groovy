@@ -320,10 +320,12 @@ class FastdexCustomJavacTask extends DefaultTask {
 
     def joinClasspath(List<String> collection) {
         StringBuilder sb = new StringBuilder()
-
+        String rootPath = project.rootDir.getAbsolutePath()
         boolean window = Os.isFamily(Os.FAMILY_WINDOWS)
-        collection.each { file ->
-            sb.append(file)
+        collection.each { path ->
+            path=path.replace(rootPath,".")
+
+            sb.append(path)
             if (window) {
                 sb.append(";")
             }
