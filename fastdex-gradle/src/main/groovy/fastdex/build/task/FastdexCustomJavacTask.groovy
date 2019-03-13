@@ -132,7 +132,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         JarOperation.generatePatchJar(fastdexVariant,null,patchJar)
         project.logger.error("==fastdex generatePatchJar success")
         String flavor = fastdexVariant.androidVariant.getFlavorName()
-        String buildType= fastdexVariant.androidVariant.getBuildType().toString()
+        String buildType= fastdexVariant.androidVariant.getBuildType().getName()
 
         File dexOutputDir = new File(project.buildDir.getAbsolutePath()+File.separator+"intermediates"
                 +File.separator+"transforms"+File.separator+"dex"
