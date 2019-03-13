@@ -132,7 +132,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         JarOperation.generatePatchJar(fastdexVariant,null,patchJar)
         project.logger.error("==fastdex generatePatchJar success")
         String flavor = fastdexVariant.androidVariant.getFlavorName()
-        String buildType= fastdexVariant.androidVariant.getBuildType()
+        String buildType= fastdexVariant.androidVariant.getBuildType().toString()
 
         File dexOutputDir = new File(project.buildDir.getAbsolutePath()+File.separator+"intermediates"
                 +File.separator+"transforms"+File.separator+"dex"
@@ -287,9 +287,6 @@ class FastdexCustomJavacTask extends DefaultTask {
 
 
         FastdexUtils.runCommand(project, cmdArgs)
-        println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
-        println(patchClassesDir.listFiles().toString())
-        println(classesDir.toString())
 //        if (!onlyROrBuildConfig) { //R 文件一样覆盖
             //覆盖app/build/intermediates/classes内容
             Files.walkFileTree(patchClassesDir.toPath(),new SimpleFileVisitor<Path>(){
