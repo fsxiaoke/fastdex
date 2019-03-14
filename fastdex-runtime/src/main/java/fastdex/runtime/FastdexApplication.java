@@ -27,9 +27,10 @@ public class FastdexApplication extends Application {
         MultiDex.install(context);
         fixGoogleMultiDex();
 
+        createRealApplication(this);
+
         Fastdex.get().initialize(this,this); //xiongtj 提前加载补丁
 
-        createRealApplication(this);
         invokeAttachBaseContext(context);
     }
 
