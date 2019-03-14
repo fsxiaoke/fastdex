@@ -44,7 +44,7 @@ public enum  Fastdex {
     }
 
     public void initialize(FastdexApplication fastdexApplication, Application realApplication) {
-        this.applicationContext = fastdexApplication.getApplicationContext();
+        this.applicationContext = fastdexApplication;
         fastdexDirectory = SharePatchFileUtil.getFastdexDirectory(applicationContext);
         patchDirectory = SharePatchFileUtil.getPatchDirectory(applicationContext);
         tempDirectory = SharePatchFileUtil.getPatchTempDirectory(applicationContext);
@@ -80,11 +80,11 @@ public enum  Fastdex {
 
             RuntimeMetaInfo assetsMetaInfo = null;
             long lastSourceModified = SharePatchFileUtil.getLastSourceModified(applicationContext);
-            Log.d(LOG_TAG,"lastSourceModified: " + lastSourceModified);
+            Log.w(LOG_TAG,"lastSourceModified: " + lastSourceModified);
 
             InputStream is = applicationContext.getAssets().open(ShareConstants.META_INFO_FILENAME);
             String assetsMetaInfoJson = new String(FileUtils.readStream(is));
-            Log.d(LOG_TAG,"load meta-info from assets: \n" + assetsMetaInfoJson);
+            Log.w(LOG_TAG,"load meta-info from assets: \n" + assetsMetaInfoJson);
             assetsMetaInfo = RuntimeMetaInfo.load(assetsMetaInfoJson);
             if (assetsMetaInfo == null) {
                 throw new NullPointerException("AssetsMetaInfo can not be null!!!");
@@ -102,13 +102,13 @@ public enum  Fastdex {
             }
             else if (!(metaInfoChanged = metaInfo.equals(assetsMetaInfo)) || (sourceChanged = metaInfo.getLastSourceModified() != lastSourceModified)) {
                 if (metaInfoChanged && sourceChanged) {
-                    Log.d(LOG_TAG,"\nmeta-info and source changed, clean patch info\n");
+                    Log.w(LOG_TAG,"\nmeta-info and source changed, clean patch info\n");
                 }
                 else if (metaInfoChanged) {
-                    Log.d(LOG_TAG,"\nmeta-info changed, clean patch info\n");
+                    Log.w(LOG_TAG,"\nmeta-info changed, clean patch info\n");
                 }
                 else if (sourceChanged) {
-                    Log.d(LOG_TAG,"\nmeta-info changed, clean patch info\n");
+                    Log.w(LOG_TAG,"\nmeta-info changed, clean patch info\n");
                 }
 
                 FileUtils.cleanDir(patchDirectory);
@@ -138,7 +138,7 @@ public enum  Fastdex {
             FileUtils.ensumeDir(optDirectory);
             File resourceApkFile = new File(resourceDirectory,Constants.RESOURCE_APK_FILE_NAME);
             if (FileUtils.isLegalFile(resourceApkFile)) {
-                Log.d(LOG_TAG,"apply res patch: " + resourceApkFile);
+                Log.i(LOG_TAG,"apply res patch: " + resourceApkFile);
                 try {
                     ResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile.getAbsolutePath());
                 } catch (Throwable throwable) {
@@ -160,7 +160,7 @@ public enum  Fastdex {
             if (!dexList.isEmpty()) {
                 PathClassLoader classLoader = (PathClassLoader) Fastdex.class.getClassLoader();
                 try {
-                    Log.d(LOG_TAG,"apply dex patch: " + dexList);
+                    Log.i(LOG_TAG,"apply dex patch: " + dexList);
                     SystemClassLoaderAdder.installDexes(classLoader,optDirectory,dexList);
                 } catch (Throwable throwable) {
                     throw new RuntimeException(throwable);
@@ -193,7 +193,7 @@ public enum  Fastdex {
             metaInfo.setPatchPath(patchDir.getAbsolutePath());
             Fastdex.get().saveRuntimeMetaInfo(metaInfo);
 
-            Log.d(LOG_TAG,"apply new patch: " + metaInfo.toJson());
+            Log.w(LOG_TAG,"apply new patch: " + metaInfo.toJson());
         }
     }
 
@@ -220,7 +220,7 @@ public enum  Fastdex {
                         throw new RuntimeException("move path fail. from: " + f.getAbsolutePath() + " ,into: " + target.getAbsolutePath());
                     }
 
-                    Log.d(LOG_TAG,"file: " + f + " renameTo: " + target);
+                    Log.w(LOG_TAG,"file: " + f + " renameTo: " + target);
                     if (path.equals(Constants.RESOURCE_APK_FILE_NAME)) {
                         runtimeMetaInfo.setResourcesVersion(version);
                     }
@@ -243,7 +243,7 @@ public enum  Fastdex {
                         throw new RuntimeException("move path fail. from: " + f.getAbsolutePath() + " ,into: " + target.getAbsolutePath());
                     }
 
-                    Log.d(LOG_TAG,"file: " + f + " renameTo: " + target);
+                    Log.w(LOG_TAG,"file: " + f + " renameTo: " + target);
                     if (path.equals(Constants.MERGED_PATCH_DEX)) {
                         runtimeMetaInfo.setMergedDexVersion(version);
                     }
@@ -301,7 +301,7 @@ public enum  Fastdex {
             fileLock = ShareFileLockHelper.getFileLock(lockFile);
             String assetsMetaInfoJson = new String(FileUtils.readContents(metaInfoFile));
             if (printLog) {
-                Log.d(LOG_TAG,"load meta-info from assets: \n" + assetsMetaInfoJson);
+                Log.w(LOG_TAG,"load meta-info from assets: \n" + assetsMetaInfoJson);
             }
             metaInfo = RuntimeMetaInfo.load(assetsMetaInfoJson);
         } catch (IOException e) {

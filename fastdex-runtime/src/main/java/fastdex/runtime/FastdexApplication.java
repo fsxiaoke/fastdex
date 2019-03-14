@@ -26,6 +26,9 @@ public class FastdexApplication extends Application {
         super.attachBaseContext(context);
         MultiDex.install(context);
         fixGoogleMultiDex();
+
+        Fastdex.get().initialize(this,this); //xiongtj 提前加载补丁
+
         createRealApplication(this);
         invokeAttachBaseContext(context);
     }
@@ -47,7 +50,7 @@ public class FastdexApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        Fastdex.get().initialize(this,realApplication);
+
         if (this.realApplication != null) {
             this.realApplication.onCreate();
         }

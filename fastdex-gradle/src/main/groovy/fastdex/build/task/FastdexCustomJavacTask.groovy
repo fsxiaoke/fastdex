@@ -94,8 +94,25 @@ class FastdexCustomJavacTask extends DefaultTask {
 //            project.logger.error("==fastdex miss classes dir, just ignore")
 //            return
 //        }
-        println(project.toString())
         long start = System.currentTimeMillis()
+
+        //xiongtj 找到sourcePath路径
+        Set<String> sourcePaths = new HashSet<>()
+        for (Set<PathInfo> pathInfos : sourceSetDiffResultSet.addOrModifiedPathInfosMap.values()) {
+            for (PathInfo pathInfo : pathInfos) {
+                if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
+                    String src = pathInfo.absoluteFile.absolutePath
+                    int end = src.indexOf("\\src\\");
+                    if(end>0){
+                        sourcePaths.add(src.substring(0,end+4))
+                        break
+                    }
+                }
+            }
+        }
+
+
+
         for (Map.Entry<String, Set<PathInfo>> entry : sourceSetDiffResultSet.addOrModifiedPathInfosMap.entrySet()) {
             String key =  entry.getKey()
             Set<PathInfo> pathInfos = entry.getValue()
@@ -113,7 +130,7 @@ class FastdexCustomJavacTask extends DefaultTask {
             if(index>0&&(index+1)<key.length()){
                 patchClassPath = key.substring(index+1,key.length())
             }
-            compile(classesDir,patchClassPath,sourceSetDiffResultSet,pathInfos)
+            compile(classesDir,patchClassPath,sourceSetDiffResultSet,sourcePaths,pathInfos)
 
         }
         disableJavaCompile()
@@ -142,7 +159,8 @@ class FastdexCustomJavacTask extends DefaultTask {
     }
 
 
-    def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet,Set<PathInfo>
+    def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet,
+                Set<String> sourcePaths, Set<PathInfo>
             pathInfos) {
         if (!FileUtils.dirExists(classesDir.absolutePath)) {
             println("==fastdex miss classes dir, just ignore")
@@ -180,6 +198,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         FileUtils.ensumeDir(patchClassesDir)
 
         def classpath = new ArrayList()
+        classpath.addAll(sourcePaths)
         classpath.add(classesDir.absolutePath)
         classpath.add(androidJar.absolutePath)
 
@@ -212,6 +231,9 @@ class FastdexCustomJavacTask extends DefaultTask {
         if (!onlyROrBuildConfig) {
             cmdArgs.add("-cp")
             cmdArgs.add(joinClasspath(classpath))
+
+//            cmdArgs.add("-sourcepath")
+//            cmdArgs.add(joinClasspath(sourcePaths))
         }
 
         def aptOutputDir = GradleUtils.getAptOutputDir(fastdexVariant.androidVariant)
@@ -273,16 +295,23 @@ class FastdexCustomJavacTask extends DefaultTask {
         cmdArgs.add("-d")
 //        cmdArgs.add(onlyROrBuildConfig ? classesDir.absolutePath : patchClassesDir.absolutePath)//R文件同样打到work目录下
         cmdArgs.add(patchClassesDir.absolutePath)
-
+        final Set<String> addOrModifiedClassNames = new HashSet<>()
         for (PathInfo pathInfo : addOrModifiedPathInfos) {
             if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
                 project.logger.error("==fastdex changed java file: ${pathInfo.relativePath}")
                 cmdArgs.add(pathInfo.absoluteFile.absolutePath)
+
+                String fileName= pathInfo.absoluteFile.getName()
+                fileName=fileName.substring(0,fileName.lastIndexOf("."))
+                addOrModifiedClassNames.add(fileName)
             }
             else {
                 project.logger.error("==fastdex skip kotlin file: ${pathInfo.relativePath}")
             }
         }
+
+
+
 
 
 
@@ -292,6 +321,17 @@ class FastdexCustomJavacTask extends DefaultTask {
             Files.walkFileTree(patchClassesDir.toPath(),new SimpleFileVisitor<Path>(){
                 @Override
                 FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
+                    String  className = file.toFile().getName().replace(".class","")
+                    int end = className.indexOf("\$");
+                    end = end>0?end:className.length()
+                    className=className.substring(0,end)
+                    if(!addOrModifiedClassNames.contains(className)){//xiongtj 如果不是当前编译的class 则删除
+                        file.toFile().delete()
+                        println("delete file"+ file.toFile().toString())
+                        return FileVisitResult.CONTINUE
+                    }
+
                     Path relativePath = patchClassesDir.toPath().relativize(file)
 
                     File destFile = new File(classesDir,relativePath.toString())
@@ -318,7 +358,8 @@ class FastdexCustomJavacTask extends DefaultTask {
 
 
 
-    def joinClasspath(List<String> collection) {
+
+    def joinClasspath(Collection<String> collection) {
         StringBuilder sb = new StringBuilder()
         String rootPath = project.rootDir.getAbsolutePath()
         boolean window = Os.isFamily(Os.FAMILY_WINDOWS)
