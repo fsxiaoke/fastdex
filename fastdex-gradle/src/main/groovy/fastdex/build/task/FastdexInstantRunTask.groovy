@@ -33,9 +33,11 @@ class FastdexInstantRunTask extends DefaultTask {
 
         try {
             fastdexInstantRun.device.installPackage(apkFile.absolutePath,true)
+            fastdexInstantRun.startBootActivity()
         } catch (Throwable e) {
-            throw new FastdexRuntimeException(e)
+            println(e.toString())
+            println("Installation failed, Please perform hostsp")
         }
-        fastdexInstantRun.startBootActivity()
+
     }
 }
