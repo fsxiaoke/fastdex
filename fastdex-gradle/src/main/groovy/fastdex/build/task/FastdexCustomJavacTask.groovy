@@ -115,6 +115,7 @@ class FastdexCustomJavacTask extends DefaultTask {
 
         for (Map.Entry<String, Set<PathInfo>> entry : sourceSetDiffResultSet.addOrModifiedPathInfosMap.entrySet()) {
             String key =  entry.getKey()
+            boolean isLib = !project.projectDir.absolutePath.equals(key)
             Set<PathInfo> pathInfos = entry.getValue()
             if(pathInfos==null||pathInfos.isEmpty()){
                 continue
@@ -130,7 +131,7 @@ class FastdexCustomJavacTask extends DefaultTask {
             if(index>0&&(index+1)<key.length()){
                 patchClassPath = key.substring(index+1,key.length())
             }
-            compile(classesDir,patchClassPath,sourceSetDiffResultSet,sourcePaths,pathInfos)
+            compile(classesDir,patchClassPath,sourceSetDiffResultSet,sourcePaths,pathInfos,isLib)
 
         }
         disableJavaCompile()
@@ -160,8 +161,7 @@ class FastdexCustomJavacTask extends DefaultTask {
 
 
     def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet,
-                Set<String> sourcePaths, Set<PathInfo>
-            pathInfos) {
+                Set<String> sourcePaths, Set<PathInfo> pathInfos,boolean isLib) {
         if (!FileUtils.dirExists(classesDir.absolutePath)) {
             println("==fastdex miss classes dir, just ignore")
             return
@@ -176,7 +176,14 @@ class FastdexCustomJavacTask extends DefaultTask {
         for (PathInfo pathInfo : pathInfos) {
             //忽略掉kotlin文件
             if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
+                //xiongtj lib 不编译R文件
+                if(isLib&&pathInfo.relativePath.endsWith(File.separator + "R.java")){
+                    project.logger.error("==fastdex skip lib R file: ${pathInfo.relativePath}")
+                    continue
+                }
+
                 addOrModifiedPathInfos.add(pathInfo)
+
 
                 if (onlyROrBuildConfig && !pathInfo.relativePath.equals(rRelativePath) && !pathInfo.relativePath.equals(buildConfigRelativePath)) {
                     onlyROrBuildConfig = false
@@ -192,6 +199,12 @@ class FastdexCustomJavacTask extends DefaultTask {
         //compile java
         File androidJar = new File("${FastdexUtils.getSdkDirectory(project)}${File.separator}platforms${File.separator}${project.android.getCompileSdkVersion()}${File.separator}android.jar")
 
+        String flavor = fastdexVariant.androidVariant.getFlavorName()
+        String buildType= fastdexVariant.androidVariant.getBuildType().getName()
+        File generatedClassPath = new File(project.buildDir.getAbsolutePath()+File.separator+"generated"
+                +File.separator+"source"+File.separator+"r"
+                +File.separator+flavor+File.separator+buildType)
+
         //class输出目录
         File patchClassesDir = new File(FastdexUtils.getWorkDir(project,fastdexVariant.variantName),patchClassPath)
         FileUtils.deleteDir(patchClassesDir)
@@ -199,6 +212,7 @@ class FastdexCustomJavacTask extends DefaultTask {
 
         def classpath = new ArrayList()
         classpath.addAll(sourcePaths)
+        classpath.add(generatedClassPath.absolutePath)
         classpath.add(classesDir.absolutePath)
         classpath.add(androidJar.absolutePath)
 
