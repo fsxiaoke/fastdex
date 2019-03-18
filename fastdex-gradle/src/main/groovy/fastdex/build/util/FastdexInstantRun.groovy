@@ -86,7 +86,8 @@ class FastdexInstantRun {
                 }
                 else {
                     if (devices.length > 1) {
-                        throw new FastdexRuntimeException("发现了多个Android设备，请使用 -PDEVICE_SN= 指定adb设备的序列号")
+                        fastdexVariant.project.logger.error("==fastdex 发现了多个Android设备 使用 ${devices[0].toString()}")
+//                        throw new FastdexRuntimeException("发现了多个Android设备，请使用 -PDEVICE_SN= 指定adb设备的序列号")
                     }
                     device = devices[0]
                 }
@@ -94,7 +95,8 @@ class FastdexInstantRun {
         }
 
         if (device == null && !background) {
-            throw new FastdexRuntimeException("没有发现Android设备，请确认连接是否正常 adb devices")
+            fastdexVariant.project.logger.error("没有发现Android设备，请确认连接是否正常 adb devices")
+//            throw new FastdexRuntimeException("没有发现Android设备，请确认连接是否正常 adb devices")
         }
         if (device != null) {
             fastdexVariant.project.logger.error("==fastdex device connected ${device.toString()}")

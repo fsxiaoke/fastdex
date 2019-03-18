@@ -6,6 +6,7 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
 import fastdex.build.variant.FastdexVariant
 import fastdex.common.utils.FileUtils
+import org.gradle.api.Project
 import org.objectweb.asm.*
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -43,6 +44,7 @@ class ClassInject implements Opcodes {
      * @param transformInvocation
      */
      static void injectTransformInvocation(FastdexVariant fastdexVariant, TransformInvocation transformInvocation) {
+         initInjectPackageName(fastdexVariant.project)
         //所有的class目录
         HashSet<File> directoryInputFiles = new HashSet<>()
         //所有输入的jar
@@ -162,7 +164,8 @@ class ClassInject implements Opcodes {
                     return FileVisitResult.CONTINUE
                 }
 
-                boolean needInject = true
+//                boolean needInject = isNeesInject(injectPackageNameList,classFile)
+                boolean needInject=true
                 //
 //                if (applicationProjectSrc && (fileName.endsWith("R.class") || fileName.matches("R\\\$\\S{1,}.class"))) {
 //                    String packageName = fastdexVariant.getOriginPackageName()
@@ -172,6 +175,7 @@ class ClassInject implements Opcodes {
 //                    }
 //                }
                 if (needInject) {
+                    println("==fastdex inject: ${classFile.getAbsolutePath()}")
                     fastdexVariant.project.logger.error("==fastdex inject: ${classFile.getAbsolutePath()}")
                     byte[] classBytes = FileUtils.readContents(classFile)
                     classBytes = ClassInject.inject(classBytes)
@@ -180,6 +184,29 @@ class ClassInject implements Opcodes {
                 return FileVisitResult.CONTINUE
             }
         })
+    }
+    static List injectPackageNameList=null
+    static void initInjectPackageName(final Project project){
+        if(injectPackageNameList==null){
+            String injectPackageName = (String) project.properties.get("injectPackageName")
+            if (injectPackageName != null ) {
+                injectPackageName = injectPackageName.replace("/",File.separator)
+                injectPackageNameList = Arrays.asList(injectPackageName.split(","))
+            }
+        }
+
+    }
+
+    static boolean isNeesInject(List injectPackageNameList,File classFile){
+        if(injectPackageNameList==null||injectPackageNameList.size()==0){
+            return true
+        }
+        for(String packageName:injectPackageNameList){
+            if(classFile.absolutePath.contains(packageName)){
+                return true
+            }
+        }
+        return false
     }
 
     /**

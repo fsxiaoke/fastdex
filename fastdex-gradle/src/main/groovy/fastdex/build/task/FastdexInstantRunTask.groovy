@@ -29,9 +29,12 @@ class FastdexInstantRunTask extends DefaultTask {
         project.logger.error("==fastdex normal run ${fastdexVariant.variantName}")
         //安装app
         File apkFile = targetVariant.outputs.first().getOutputFile()
-        project.logger.error("adb -s ${fastdexInstantRun.device.getSerialNumber()} install -r ${apkFile}")
 
         try {
+            if(fastdexInstantRun.device==null){
+                throw new RuntimeException("没有发现Android设备，请确认连接是否正常 adb devices")
+            }
+            project.logger.error("adb -s ${fastdexInstantRun.device.getSerialNumber()} install -r ${apkFile}")
             fastdexInstantRun.device.installPackage(apkFile.absolutePath,true)
             fastdexInstantRun.startBootActivity()
         } catch (Throwable e) {
