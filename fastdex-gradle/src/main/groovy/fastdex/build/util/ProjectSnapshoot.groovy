@@ -355,7 +355,8 @@ class ProjectSnapshoot {
      */
     def isDependenciesChanged() {
         if (dependenciesSnapshoot == null) {
-            dependenciesSnapshoot = new StringSnapshoot(GradleUtils.getCurrentDependList(fastdexVariant.project,fastdexVariant.androidVariant))
+            dependenciesSnapshoot = new StringSnapshoot(GradleUtils.getAllDependList(fastdexVariant.project,fastdexVariant
+                    .androidVariant))
         }
 
         if (oldDependenciesSnapshoot == null) {
@@ -370,7 +371,7 @@ class ProjectSnapshoot {
      */
     def saveDependenciesSnapshoot() {
         if (dependenciesSnapshoot == null) {
-            dependenciesSnapshoot = new StringSnapshoot(GradleUtils.getCurrentDependList(fastdexVariant.project,fastdexVariant.androidVariant))
+            dependenciesSnapshoot = new StringSnapshoot(GradleUtils.getAllDependList(fastdexVariant.project,fastdexVariant.androidVariant))
         }
         saveDependenciesSnapshoot(dependenciesSnapshoot)
     }

@@ -2,11 +2,17 @@ package fastdex.build.util
 
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.dependency.VariantDependencies
 import com.android.build.gradle.internal.pipeline.IntermediateFolderUtils
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.builder.model.Version
 import fastdex.common.utils.FileUtils
 import groovy.xml.QName
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencySet
+
 import java.lang.reflect.Field
 import com.android.build.api.transform.TransformInvocation
 import org.gradle.api.Project
@@ -40,7 +46,7 @@ class GradleUtils {
         else {
             def variantScope = applicationVariant.variantData.getScope()
 
-            //def artifacts = com.android.build.gradle.internal.ide.ArtifactDependencyGraph.getAllArtifacts(variantScope,  com.android.build.gradle.internal.publishing.AndroidArtifacts.ConsumedConfigType.COMPILE_CLASSPATH,null);
+//            def artifacts = com.android.build.gradle.internal.ide.ArtifactDependencyGraph.getAllArtifacts(variantScope,  com.android.build.gradle.internal.publishing.AndroidArtifacts.ConsumedConfigType.COMPILE_CLASSPATH,null);
             //ArtifactDependencyGraph这个api3.0.0才有，fastdex依赖的是低版本的android gradle编译通不过,所以通过反射调用
             Class dependencyGraphClass = Class.forName("com.android.build.gradle.internal.ide.ArtifactDependencyGraph")
             Class consumedConfigTypeClass = Class.forName("com.android.build.gradle.internal.publishing.AndroidArtifacts\$ConsumedConfigType")
@@ -51,19 +57,69 @@ class GradleUtils {
             for (org.gradle.api.artifacts.result.ResolvedArtifactResult artifact : artifacts) {
                 if (artifact.getDependencyType().getExtension().equals(com.android.SdkConstants.EXT_JAR)) {
                     File jarFile = artifact.getFile()
-
                     result.add(jarFile.getAbsolutePath())
                 }
                 else {
                     final File explodedFolder = artifact.getFile()
                     File aarFile = artifact.bundleResult != null ? artifact.bundleResult.getFile() : explodedFolder
-
                     result.add(aarFile.getAbsolutePath())
                 }
+
             }
+
         }
         return result
     }
+
+    /**
+     * xiongtj 获取项目的所有依赖
+     * @param project
+     * @param applicationVariant
+     * @return
+     */
+    static Set<String> getAllDependList(Project project, Object applicationVariant) {
+        Set<Project> alreadyScanProjectSet = Collections.synchronizedSet(new HashSet<Project>())
+        Set<String> allDependList = Collections.synchronizedSet(new HashSet<String>())
+        getProjectDependList(project,applicationVariant,alreadyScanProjectSet,allDependList)
+        return allDependList
+    }
+
+    static Set<String> getProjectDependList(Project project, Object
+            applicationVariant,Set<Project> alreadyScanProjectSet,Set<String> allDependList) {
+        if(alreadyScanProjectSet.contains(project)){
+            return
+        }
+
+        Set<String> currentDependList = getCurrentDependList(project,applicationVariant)
+
+        allDependList.addAll(currentDependList)
+        alreadyScanProjectSet.add(project)
+
+        if (GradleUtils.getAndroidGradlePluginVersion().compareTo("3.0.0") >= 0) {
+            VariantDependencies variantDeps = applicationVariant.getVariantData().getVariantDependency()
+            DependencySet dependencies= variantDeps.getCompileClasspath().getAllDependencies()
+
+            String applicationBuildTypeName = applicationVariant.getBuildType().buildType.getName()
+
+
+            for (Dependency dependency : dependencies) {
+                if (dependency instanceof org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency) {
+                    Project dependencyProject = dependency.getDependencyProject()
+                    println(dependencyProject.getName())
+                    if (dependencyProject.plugins.hasPlugin("com.android.library")) {
+                        def libraryVariant = GradleUtils.getLibraryFirstVariant(dependencyProject,applicationBuildTypeName)
+                        getProjectDependList(dependencyProject,libraryVariant,alreadyScanProjectSet,allDependList)
+
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+
 
     /**
      * 获取dex输出目录
