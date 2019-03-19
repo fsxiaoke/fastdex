@@ -109,16 +109,25 @@ class ClassInject implements Opcodes {
         if (fastdexVariant.configuration.debug) {
             project.logger.error("==fastdex projectJarFiles : ${projectJarFiles}")
         }
+        //xiongtj 需要注入的jar个数
+        int injectJarCount = fastdexVariant.configuration.injectJarCount
+        println("==fastdex injectJarCount : ${injectJarCount}")
         for (File file : jarInputFiles) {
             //java8 生成的jar在desugar 0.jar 1.jar.....120.jar...
 //            if (!projectJarFiles.contains(file)) {
 //                continue
 //            }
-            project.logger.error("==fastdex inject jar: ${file}")
+            int num = getJarNumber(file)
+            if(num>injectJarCount){//小于injectJarCount 的jar是需要注入的jar
+                println("==fastdex skip inject jar: ${file}")
+                continue
+            }
+
             ClassInject.injectJar(fastdexVariant,file,file)
+            project.logger.error("==fastdex inject jar: ${file}")
         }
         long end = System.currentTimeMillis()
-        project.logger.error("==fastdex inject complete jar-size: ${projectJarFiles.size()} , use: ${end - start}ms")
+        println("==fastdex inject complete jar-size: ${jarInputFiles.size()} , use: ${end - start}ms")
     }
 
     /**
@@ -129,6 +138,7 @@ class ClassInject implements Opcodes {
      * @return
      */
     static injectJar(FastdexVariant fastdexVariant, File inputJar,File outputJar) {
+        
         File tempDir = new File(fastdexVariant.buildDir,"temp")
         FileUtils.deleteDir(tempDir)
         FileUtils.ensumeDir(tempDir)
@@ -141,6 +151,20 @@ class ClassInject implements Opcodes {
         ClassInject.injectDirectory(fastdexVariant,tempDir,false)
         project.ant.zip(baseDir: tempDir, destFile: outputJar)
         FileUtils.deleteDir(tempDir)
+    }
+
+    static int getJarNumber(File jarFile){
+        String fileName = jarFile.getName()
+        int end = fileName.indexOf(".")
+        int num = 0
+        if(end>0) {
+            String nString = fileName.substring(0, end)
+            try {
+                num = Integer.valueOf(nString)
+            } catch (NumberFormatException e) {
+            }
+        }
+        return num
     }
 
     /**

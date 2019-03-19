@@ -42,4 +42,9 @@ class FastdexExtension {
      * 进hook debug这个build type
      */
     boolean onlyHookDebug = false
+
+    /**
+     * 需要注入的jar 1.jar 2.jar ...50.jar
+     */
+	int injectJarCount = 50
 }
