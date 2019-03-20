@@ -211,7 +211,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         FileUtils.ensumeDir(patchClassesDir)
 
         def classpath = new ArrayList()
-        classpath.addAll(sourcePaths)
+
         classpath.add(generatedClassPath.absolutePath)
         classpath.add(classesDir.absolutePath)
         classpath.add(androidJar.absolutePath)
@@ -219,6 +219,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         File classpathFile = new File(FastdexUtils.getBuildDir(project,fastdexVariant.variantName),Constants.CLASSPATH_FILENAME)
         ArrayList<String> list = SerializeUtils.load(new FileInputStream(classpathFile), ArrayList.class)
         classpath.addAll(list)
+        classpath.addAll(sourcePaths)
 
         def executable = FastdexUtils.getJavacCmdPath()
         //处理retrolambda
