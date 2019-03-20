@@ -3,6 +3,7 @@ package fastdex.build.variant
 import com.android.build.api.transform.TransformInvocation
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.internal.dependency.VariantDependencies
+import com.android.build.gradle.tasks.PackageApplication
 import com.github.typ0520.fastdex.Version
 import fastdex.build.extension.FastdexExtension
 import fastdex.build.task.FastdexInstantRunTask
@@ -11,7 +12,9 @@ import fastdex.build.util.*
 import fastdex.common.utils.FileUtils
 import fastdex.common.utils.SerializeUtils
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 
 /**
  * Created by tong on 17/3/10.
@@ -327,8 +330,33 @@ class FastdexVariant {
      * 执行package任务之前
      * @return
      */
-    def onPrePackage() {
+    def onPrePackage(Task task) {
         copyMetaInfo2Assets()
+        addDexPath(task)
+    }
+
+    /**
+     * xiongtj
+     * 添加DexFolders
+     * @param task
+     * @return
+     */
+    def addDexPath(Task task){
+        if(task instanceof PackageApplication){
+          org.gradle.api.file.FileCollection fileCollection=  ((PackageApplication)task).getDexFolders()
+            if(fileCollection.getFiles()==null||fileCollection.getFiles().size()==0){
+                String flavor = androidVariant.getFlavorName()
+                String buildType= androidVariant.getBuildType().getName()
+                if(fileCollection instanceof DefaultConfigurableFileCollection){
+                    String path = project.buildDir.getAbsolutePath()+File.separator+"intermediates"+File.separator+"transforms"+File.separator+"dex"+File.separator+flavor+File
+                            .separator+buildType+File.separator+"0"
+                    println("==fastdex add DexFolders:"+path)
+                    (DefaultConfigurableFileCollection) fileCollection.setFrom(path)
+                }
+
+            }
+        }
+
     }
 
     /**

@@ -336,7 +336,7 @@ class FastdexPlugin implements Plugin<Project> {
 
                     if (packageTask != null) {
                         packageTask.doFirst {
-                            fastdexVariant.onPrePackage()
+                            fastdexVariant.onPrePackage(packageTask)
                         }
                     }
 
