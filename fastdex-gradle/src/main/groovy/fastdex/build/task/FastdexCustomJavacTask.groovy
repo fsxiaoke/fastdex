@@ -96,16 +96,19 @@ class FastdexCustomJavacTask extends DefaultTask {
 //        }
         long start = System.currentTimeMillis()
 
+        File sourceDir = FastdexUtils.getSourceDir(project,fastdexVariant.variantName)
         //xiongtj 找到sourcePath路径
-        Set<String> sourcePaths = new HashSet<>()
+        FileUtils.deleteDir(sourceDir)
+        FileUtils.ensumeDir(sourceDir)
         for (Set<PathInfo> pathInfos : sourceSetDiffResultSet.addOrModifiedPathInfosMap.values()) {
             for (PathInfo pathInfo : pathInfos) {
                 if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
-                    String src = pathInfo.absoluteFile.absolutePath
-                    int end = src.indexOf("\\src\\");
-                    if(end>0){
-                        sourcePaths.add(src.substring(0,end+4))
-                        break
+                    String src = pathInfo.absoluteFile.getParent()
+                    int s = src.indexOf("\\src\\")
+                    if(s>0&&s<src.length()){
+                        String path = src.substring(s+4,src.length())
+                        File desFile = new File(sourceDir,path)
+                        fastdex.build.util.FileUtils.copy(pathInfo.absoluteFile,desFile)
                     }
                 }
             }
@@ -131,7 +134,7 @@ class FastdexCustomJavacTask extends DefaultTask {
             if(index>0&&(index+1)<key.length()){
                 patchClassPath = key.substring(index+1,key.length())
             }
-            compile(classesDir,patchClassPath,sourceSetDiffResultSet,sourcePaths,pathInfos,isLib)
+            compile(classesDir,patchClassPath,sourceSetDiffResultSet,pathInfos,isLib)
 
         }
         disableJavaCompile()
@@ -160,8 +163,7 @@ class FastdexCustomJavacTask extends DefaultTask {
     }
 
 
-    def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet,
-                Set<String> sourcePaths, Set<PathInfo> pathInfos,boolean isLib) {
+    def compile(File classesDir,String patchClassPath,SourceSetDiffResultSet sourceSetDiffResultSet, Set<PathInfo> pathInfos,boolean isLib) {
         if (!FileUtils.dirExists(classesDir.absolutePath)) {
             println("==fastdex miss classes dir, just ignore")
             return
@@ -194,6 +196,10 @@ class FastdexCustomJavacTask extends DefaultTask {
             }
         }
 
+        if(addOrModifiedPathInfos.size()==0){
+            return
+        }
+
 
 
         //compile java
@@ -212,6 +218,8 @@ class FastdexCustomJavacTask extends DefaultTask {
 
         def classpath = new ArrayList()
 
+
+        classpath.add(FastdexUtils.getSourceDir(project,fastdexVariant.variantName).absolutePath)
         classpath.add(generatedClassPath.absolutePath)
         classpath.add(classesDir.absolutePath)
         classpath.add(androidJar.absolutePath)
@@ -219,7 +227,7 @@ class FastdexCustomJavacTask extends DefaultTask {
         File classpathFile = new File(FastdexUtils.getBuildDir(project,fastdexVariant.variantName),Constants.CLASSPATH_FILENAME)
         ArrayList<String> list = SerializeUtils.load(new FileInputStream(classpathFile), ArrayList.class)
         classpath.addAll(list)
-        classpath.addAll(sourcePaths)
+
 
         def executable = FastdexUtils.getJavacCmdPath()
         //处理retrolambda

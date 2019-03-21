@@ -164,6 +164,16 @@ class FastdexUtils {
     }
 
     /**
+     * 获取改变的java文件复制的目录
+     * @param project
+     * @return
+     */
+    static final File getSourceDir(Project project,String variantName) {
+        File file = new File(getBuildDir(project,variantName),"source")
+        return file
+    }
+
+    /**
      * 获取dex目录
      * @param project
      * @param variantName
