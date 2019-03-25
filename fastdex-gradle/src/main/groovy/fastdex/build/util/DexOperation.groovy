@@ -25,33 +25,33 @@ class DexOperation {
         List<String> cmdArgs = new ArrayList<>()
 
         //TODO 补丁的方法数也有可能超过65535个，最好加上使dx生成多个dex的参数，但是一般补丁不会那么大所以暂时不处理
-        if (Os.isFamily(Os.FAMILY_WINDOWS) || fastdexVariant.project.projectDir.absolutePath.contains(" ")) {
+//        if (Os.isFamily(Os.FAMILY_WINDOWS) || fastdexVariant.project.projectDir.absolutePath.contains(" ")) {
             //调用dx命令
             cmdArgs.add(FastdexUtils.getDxCmdPath(fastdexVariant.project))
             cmdArgs.add("--dex")
             cmdArgs.add("--output=${patchDex}")
             cmdArgs.add(patchJar.absolutePath)
-        }
-        else {
-            File dxJarFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project),"fastdex-dx.jar")
-            File dxCommandFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project),"fastdex-dx")
-
-            if (!FileUtils.isLegalFile(dxJarFile)) {
-                FileUtils.copyResourceUsingStream("fastdex-dx.jar",dxJarFile)
-            }
-
-            if (!FileUtils.isLegalFile(dxCommandFile)) {
-                FileUtils.copyResourceUsingStream("fastdex-dx",dxCommandFile)
-            }
-
-            cmdArgs.add("sh")
-            cmdArgs.add(dxCommandFile.absolutePath)
-            cmdArgs.add("--dex")
-            cmdArgs.add("--no-optimize")
-            cmdArgs.add("--force-jumbo")
-            cmdArgs.add("--output=${patchDex}")
-            cmdArgs.add(patchJar.absolutePath)
-        }
+//        }
+//        else {
+//            File dxJarFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project),"fastdex-dx.jar")
+//            File dxCommandFile = new File(FastdexUtils.getBuildDir(fastdexVariant.project),"fastdex-dx")
+//
+//            if (!FileUtils.isLegalFile(dxJarFile)) {
+//                FileUtils.copyResourceUsingStream("fastdex-dx.jar",dxJarFile)
+//            }
+//
+//            if (!FileUtils.isLegalFile(dxCommandFile)) {
+//                FileUtils.copyResourceUsingStream("fastdex-dx",dxCommandFile)
+//            }
+//
+//            cmdArgs.add("sh")
+//            cmdArgs.add(dxCommandFile.absolutePath)
+//            cmdArgs.add("--dex")
+//            cmdArgs.add("--no-optimize")
+//            cmdArgs.add("--force-jumbo")
+//            cmdArgs.add("--output=${patchDex}")
+//            cmdArgs.add(patchJar.absolutePath)
+//        }
 
         //调用dx命令
         FastdexUtils.runCommand(fastdexVariant.project, cmdArgs)
