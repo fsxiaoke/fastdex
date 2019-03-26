@@ -77,12 +77,20 @@ public class FastdexApplication extends Application {
 
             try {
                 Class realClass = Class.forName(applicationClass);
-                Constructor constructor = realClass.getConstructor(new Class[0]);
-                this.realApplication = ((Application) constructor.newInstance(new Object[0]));
+                Constructor constructor = realClass.getConstructor(Application.class);
+                this.realApplication = ((Application) constructor.newInstance(this));
                 Log.v(LOG_TAG, new StringBuilder().append("Created real app instance successfully :").append(this.realApplication).toString());
 
             } catch (Exception e) {
-                throw new IllegalStateException(e);
+                try {
+                    Class realClass = Class.forName(applicationClass);
+                    Constructor constructor = realClass.getConstructor(new Class[0]);
+                    this.realApplication = ((Application) constructor.newInstance(new Object[0]));
+                    Log.v(LOG_TAG,new StringBuilder().append("Created real app instance successfully2 :").append(this.realApplication).toString());
+                } catch (Exception ee) {
+                    throw new IllegalStateException(ee);
+                }
+
             }
         } else {
             this.realApplication = new Application();
