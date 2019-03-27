@@ -34,6 +34,11 @@ public class FastdexApplication extends Application {
         invokeAttachBaseContext(context);
     }
 
+    @Override
+    public void registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
+    }
+
+
     private void invokeAttachBaseContext(Context context) {
         if (this.realApplication != null) {
             try {
@@ -108,46 +113,6 @@ public class FastdexApplication extends Application {
     }
 
 
-    public Context createPackageContext(String packageName, int flags)
-            throws PackageManager.NameNotFoundException {
-        Context c = this.realApplication.createPackageContext(packageName, flags);
-        return c == null ? this.realApplication : c;
-    }
 
-    public void registerComponentCallbacks(ComponentCallbacks callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            this.realApplication.registerComponentCallbacks(callback);
-        }
-    }
-
-    public void registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            this.realApplication.registerActivityLifecycleCallbacks(callback);
-        }
-    }
-
-    public void registerOnProvideAssistDataListener(OnProvideAssistDataListener callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            this.realApplication.registerOnProvideAssistDataListener(callback);
-        }
-    }
-
-    public void unregisterComponentCallbacks(ComponentCallbacks callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            this.realApplication.unregisterComponentCallbacks(callback);
-        }
-    }
-
-    public void unregisterActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            this.realApplication.unregisterActivityLifecycleCallbacks(callback);
-        }
-    }
-
-    public void unregisterOnProvideAssistDataListener(OnProvideAssistDataListener callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            this.realApplication.unregisterOnProvideAssistDataListener(callback);
-        }
-    }
 }
 
