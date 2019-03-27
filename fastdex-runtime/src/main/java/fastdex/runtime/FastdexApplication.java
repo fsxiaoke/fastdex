@@ -34,10 +34,6 @@ public class FastdexApplication extends Application {
         invokeAttachBaseContext(context);
     }
 
-    @Override
-    public void registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks callback) {
-    }
-
 
     private void invokeAttachBaseContext(Context context) {
         if (this.realApplication != null) {
