@@ -98,8 +98,12 @@ public class ResourcePatcher {
 
         // Kitkat needs this method call, Lollipop doesn't. However, it doesn't seem to cause any harm
         // in L, so we do it unconditionally.
-        ensureStringBlocksMethod = AssetManager.class.getDeclaredMethod("ensureStringBlocks");
-        ensureStringBlocksMethod.setAccessible(true);
+        try {
+            ensureStringBlocksMethod = AssetManager.class.getDeclaredMethod("ensureStringBlocks");
+            ensureStringBlocksMethod.setAccessible(true);
+        } catch (NoSuchMethodException ignore) {
+        }
+
 
         // Iterate over all known Resources objects
         if (SDK_INT >= KITKAT) {
@@ -178,7 +182,9 @@ public class ResourcePatcher {
 
         // Kitkat needs this method call, Lollipop doesn't. However, it doesn't seem to cause any harm
         // in L, so we do it unconditionally.
-        ensureStringBlocksMethod.invoke(newAssetManager);
+        if(ensureStringBlocksMethod!=null){
+            ensureStringBlocksMethod.invoke(newAssetManager);
+        }
 
         for (WeakReference<Resources> wr : references) {
             Resources resources = wr.get();
