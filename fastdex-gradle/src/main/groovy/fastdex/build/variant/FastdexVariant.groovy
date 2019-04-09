@@ -350,8 +350,8 @@ class FastdexVariant {
                 if(fileCollection instanceof DefaultConfigurableFileCollection){
                     String path = project.buildDir.getAbsolutePath()+File.separator+"intermediates"+File.separator+"transforms"+File.separator+"dex"+File.separator+flavor+File
                             .separator+buildType+File.separator+"0"
+                    ((DefaultConfigurableFileCollection) fileCollection).setFrom(path)
                     println("==fastdex add DexFolders:"+path)
-                    (DefaultConfigurableFileCollection) fileCollection.setFrom(path)
                 }
 
             }
