@@ -33,7 +33,11 @@ class FastdexUtils {
      * @return
      */
     static final String getDxCmdPath(Project project) {
-        File dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}dx")
+        //xiongtj 优先使用d8
+        File dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}d8")
+        if(!dx.exists()){
+            dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}dx")
+        }
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             return "${dx.absolutePath}.bat"
         }
