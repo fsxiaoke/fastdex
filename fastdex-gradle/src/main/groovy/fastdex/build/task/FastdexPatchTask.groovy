@@ -30,11 +30,11 @@ class FastdexPatchTask extends DefaultTask {
         }
         FastdexInstantRun fastdexInstantRun = fastdexVariant.fastdexInstantRun
         if (!fastdexInstantRun.isInstantRunBuild()) {
-            fastdexVariant.project.logger.error("==fastdex instant run disable")
+            println("==fastdex instant run disable")
             return
         }
         if (fastdexInstantRun.manifestChanged) {
-            fastdexVariant.project.logger.error("==fastdex instant run enable, manifest.xml changed")
+            println("==fastdex instant run enable, manifest.xml changed")
             return
         }
 
@@ -68,11 +68,11 @@ class FastdexPatchTask extends DefaultTask {
                     info.variantName = input.readUTF()
 
                     if (fastdexVariant.metaInfo.buildMillis != info.buildMillis) {
-                        fastdexVariant.project.logger.error("==fastdex buildMillis not equal, install apk")
+                        println("==fastdex buildMillis not equal, install apk")
                         throw new FastdexRuntimeException()
                     }
                     if (!fastdexVariant.metaInfo.variantName.equals(info.variantName)) {
-                        fastdexVariant.project.logger.error("==variantName not equal, install apk")
+                        println("==variantName not equal, install apk")
                         throw new FastdexRuntimeException()
                     }
 
@@ -106,7 +106,7 @@ class FastdexPatchTask extends DefaultTask {
 
         } catch (Throwable e) {
             if (!(e instanceof FastdexRuntimeException)) {
-                fastdexVariant.project.logger.error("==fastdex ping installed app fail: " + e.message)
+                println("==fastdex ping installed app fail: " + e.message)
             }
             return
         }
@@ -195,7 +195,7 @@ class FastdexPatchTask extends DefaultTask {
             fastdexInstantRun.setInstallApk(false)
         } catch (Throwable e) {
             if (!(e instanceof FastdexRuntimeException)) {
-                fastdexVariant.project.logger.error("==fastdex send patch fail: " + e.message)
+                println("==fastdex send patch fail: " + e.message)
             }
         }
     }
