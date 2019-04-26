@@ -124,6 +124,9 @@ class FastdexPlugin implements Plugin<Project> {
             android.applicationVariants.each { variant ->
                 def variantOutput = variant.outputs.first()
                 def variantName = variant.name.capitalize()
+                if(!variantName.equals("OnlineDebug")){ //xiongtj 只对OnlineDebug有效
+                    return
+                }
 
                 try {
                     //与instant run有冲突需要禁掉instant run
@@ -224,6 +227,7 @@ class FastdexPlugin implements Plugin<Project> {
                         fastdexVariant.fastdexInstantRun.onResourceChanged()
                     }
 
+                    fastdexVariant.prepareEnv() //xiongtj 提前加载
                     Task prepareTask = project.tasks.create("fastdexPrepareFor${variantName}", FastdexPrepareTask)
                     prepareTask.fastdexVariant = fastdexVariant
                     prepareTask.mustRunAfter variantOutput.processResources
@@ -374,11 +378,12 @@ class FastdexPlugin implements Plugin<Project> {
                         @Override
                         void graphPopulated(TaskExecutionGraph taskGraph) {
                             for (Task task : taskGraph.getAllTasks()) {
-                                if(!isDependenciesChanged&&enableCompileCustomJavac&&task.name.equals
-                                        ("compileDebugJavaWithJavac")
-                                        &&customJavacModuleList!=null&&customJavacModuleList.contains(task.getProject().getName())){
-                                    println("disable task:"+task.getProject().getName()+":"+task.getName())
-                                    task.setEnabled(false)
+                                if(!isDependenciesChanged&&enableCompileCustomJavac) {
+                                    if (task.name.equals("compileDebugJavaWithJavac") || task.name.equals("compileDebugKotlin") || task.name.equals
+                                            ("transformClassesWithDesugarForOnlineDebug")) {
+                                        println("disable task:" + task.getProject().getName() + ":" + task.getName())
+                                        task.setEnabled(false)
+                                    }
                                 }
                                 if (task.getProject().equals(project)
                                         && task instanceof TransformTask

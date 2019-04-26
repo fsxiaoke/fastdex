@@ -179,24 +179,20 @@ class FastdexVariant {
                     throw new JumpException("dependencies changed")
                 }
             } catch (Throwable e) {
-                hasDexCache = false
-                //删掉classes目录和transforms目录，是为了重新触发java编译和dex transform
-                File classesDir = androidVariant.getVariantData().getScope().getJavaOutputDir()
-                classesDir.deleteDir()
-                File transformsDir = new File(androidVariant.getVariantData().getScope().getGlobalScope().getIntermediatesDir(), "/transforms")
-                transformsDir.deleteDir()
-                File apkLocationDir = GradleUtils.getApkLocation(androidVariant)
-                apkLocationDir.deleteDir()
-
                 if (!(e instanceof JumpException) && configuration.debug) {
                     e.printStackTrace()
                 }
-                project.logger.error("==fastdex delete ${classesDir}")
-                project.logger.error("==fastdex delete ${transformsDir}")
-                project.logger.error("==fastdex delete ${apkLocationDir}")
                 project.logger.error("==fastdex ${e.getMessage()}")
-                project.logger.error("==fastdex we will remove ${variantName.toLowerCase()} cache")
+                delCache()
+                hasDexCache = false
             }
+        }
+
+        projectSnapshoot.prepareEnv()
+        if(fastdexInstantRun.manifestChanged){//minifest改变不走增量
+            delCache()
+            hasDexCache=false
+
         }
 
         if (hasDexCache && metaInfo != null) {
@@ -219,13 +215,30 @@ class FastdexVariant {
             FileUtils.ensumeDir(buildDir)
         }
 
-        projectSnapshoot.prepareEnv()
+
 
         if (hasDexCache) {
             //判断下当前有多少个源文件发生变化，如果超过了阈值将会执行dex merge操作
             needExecDexMerge = projectSnapshoot.diffResultSet.addOrModifiedPathInfos.size() >= configuration.dexMergeThreshold
         }
         fastdexInstantRun.onFastdexPrepare()
+
+    }
+
+    def delCache(){
+        //删掉classes目录和transforms目录，是为了重新触发java编译和dex transform
+        File classesDir = androidVariant.getVariantData().getScope().getJavaOutputDir()
+        classesDir.deleteDir()
+        File transformsDir = new File(androidVariant.getVariantData().getScope().getGlobalScope().getIntermediatesDir(), "/transforms")
+        transformsDir.deleteDir()
+        File apkLocationDir = GradleUtils.getApkLocation(androidVariant)
+        apkLocationDir.deleteDir()
+
+        project.logger.error("==fastdex delete ${classesDir}")
+        project.logger.error("==fastdex delete ${transformsDir}")
+        project.logger.error("==fastdex delete ${apkLocationDir}")
+
+        project.logger.error("==fastdex we will remove ${variantName.toLowerCase()} cache")
     }
 
     boolean isDependenciesChanged,isDependenciesInited
@@ -344,6 +357,7 @@ class FastdexVariant {
     def addDexPath(Task task){
         if(task instanceof PackageApplication){
           org.gradle.api.file.FileCollection fileCollection=  ((PackageApplication)task).getDexFolders()
+            println("fileCollection.getFiles()："+fileCollection.getFiles())
             if(fileCollection.getFiles()==null||fileCollection.getFiles().size()==0){
                 String flavor = androidVariant.getFlavorName()
                 String buildType= androidVariant.getBuildType().getName()
@@ -351,7 +365,7 @@ class FastdexVariant {
                     String path = project.buildDir.getAbsolutePath()+File.separator+"intermediates"+File.separator+"transforms"+File.separator+"dex"+File.separator+flavor+File
                             .separator+buildType+File.separator+"0"
                     ((DefaultConfigurableFileCollection) fileCollection).setFrom(path)
-                    println("==fastdex add DexFolders:"+path)
+                    println("==fastdex add DexFolders:"+path +"  fileCollection.getFiles()："+fileCollection.getFiles())
                 }
 
             }

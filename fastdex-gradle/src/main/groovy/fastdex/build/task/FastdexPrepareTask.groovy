@@ -17,6 +17,6 @@ class FastdexPrepareTask extends DefaultTask {
 
     @TaskAction
     def prepareContext() {
-        fastdexVariant.prepareEnv()
+//        fastdexVariant.prepareEnv() //移入FastdexPlugin执行
     }
 }
