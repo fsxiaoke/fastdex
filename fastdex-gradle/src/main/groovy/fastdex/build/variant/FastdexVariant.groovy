@@ -90,7 +90,7 @@ class FastdexVariant {
         initialized = true
         hasDexCache = FastdexUtils.hasDexCache(project,variantName)
 
-        project.logger.error("==fastdex hasDexCache: ${hasDexCache}")
+        println("==fastdex hasDexCache: ${hasDexCache}")
         if (hasDexCache) {
             File diffResultSetFile = FastdexUtils.getDiffResultSetFile(project,variantName)
             if (!FileUtils.isLegalFile(diffResultSetFile)) {
@@ -182,7 +182,7 @@ class FastdexVariant {
                 if (!(e instanceof JumpException) && configuration.debug) {
                     e.printStackTrace()
                 }
-                project.logger.error("==fastdex ${e.getMessage()}")
+                println("==fastdex ${e.getMessage()}")
                 delCache()
                 hasDexCache = false
             }
@@ -196,7 +196,7 @@ class FastdexVariant {
         }
 
         if (hasDexCache && metaInfo != null) {
-            project.logger.error("==fastdex discover dex cache for ${variantName.toLowerCase()}")
+            println("==fastdex discover dex cache for ${variantName.toLowerCase()}")
 
             try {
                 project.tasks.getByName("transformDexArchiveWithExternalLibsDexMergerFor${variantName}").enabled = false
@@ -234,11 +234,11 @@ class FastdexVariant {
         File apkLocationDir = GradleUtils.getApkLocation(androidVariant)
         apkLocationDir.deleteDir()
 
-        project.logger.error("==fastdex delete ${classesDir}")
-        project.logger.error("==fastdex delete ${transformsDir}")
-        project.logger.error("==fastdex delete ${apkLocationDir}")
+        println("==fastdex delete ${classesDir}")
+        println("==fastdex delete ${transformsDir}")
+        println("==fastdex delete ${apkLocationDir}")
 
-        project.logger.error("==fastdex we will remove ${variantName.toLowerCase()} cache")
+        println("==fastdex we will remove ${variantName.toLowerCase()} cache")
     }
 
     boolean isDependenciesChanged,isDependenciesInited
@@ -334,7 +334,7 @@ class FastdexVariant {
             File assetsPath = androidVariant.getMergeAssets().outputDir
             File dest = new File(assetsPath,metaInfoFile.getName())
 
-            project.logger.error("==fastdex copy meta info: \nfrom: " + metaInfoFile + "\ninto: " + dest)
+            println("==fastdex copy meta info: \nfrom: " + metaInfoFile + "\ninto: " + dest)
             FileUtils.copyFileUsingStream(metaInfoFile,dest)
         }
     }
