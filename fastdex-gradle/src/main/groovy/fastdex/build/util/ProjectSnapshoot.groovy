@@ -278,7 +278,6 @@ class ProjectSnapshoot {
 
             String buildTypeName = fastdexVariant.androidVariant.getBuildType().buildType.getName()
             String flavorName = fastdexVariant.androidVariant.flavorName
-
             if (buildTypeName && flavorName) {
                 File file = FastdexUtils.getManifestFile(project,flavorName + buildTypeName.capitalize() as String)
 
