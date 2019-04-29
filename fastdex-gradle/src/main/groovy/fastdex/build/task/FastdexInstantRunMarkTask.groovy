@@ -17,7 +17,7 @@ class FastdexInstantRunMarkTask extends DefaultTask {
     @TaskAction
     def mark() {
         fastdexVariant.fastdexInstantRun.fromFastdexInstantRun = true
-        project.logger.error("==fastdex fromFastdexInstantRun: true")
+        project.logger.error("==fastdex from FastdexInstantRun: true")
 
         new Thread(new Runnable() {
             @Override

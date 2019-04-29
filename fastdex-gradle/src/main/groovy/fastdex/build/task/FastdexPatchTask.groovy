@@ -28,7 +28,12 @@ class FastdexPatchTask extends DefaultTask {
         if (!fastdexVariant.hasDexCache) {
             return
         }
+
+
         FastdexInstantRun fastdexInstantRun = fastdexVariant.fastdexInstantRun
+
+        fastdexInstantRun.setInstallApk(false)//xiongtj 走增量就不安装apk
+
         if (!fastdexInstantRun.isInstantRunBuild()) {
             println("==fastdex instant run disable")
             return
@@ -54,7 +59,7 @@ class FastdexPatchTask extends DefaultTask {
         boolean sendPatchDex = false
         boolean sendMergedDex = false
 
-        project.logger.error("==fastdex pc   resourceChanged: ${fastdexInstantRun.resourceChanged} , assetsChanged: ${fastdexInstantRun.assetsChanged}, sourceChanged: ${fastdexInstantRun.sourceChanged}, manifestChanged: ${manifestChanged}")
+        println("==fastdex pc   resourceChanged: ${fastdexInstantRun.resourceChanged} , assetsChanged: ${fastdexInstantRun.assetsChanged}, sourceChanged: ${fastdexInstantRun.sourceChanged}, manifestChanged: ${manifestChanged}")
 
         try {
             runtimeMetaInfo = serviceCommunicator.talkToService(fastdexInstantRun.device, new Communicator<MetaInfo>() {
@@ -108,14 +113,17 @@ class FastdexPatchTask extends DefaultTask {
             if (!(e instanceof FastdexRuntimeException)) {
                 println("==fastdex ping installed app fail: " + e.message)
             }
+            println("==fastdex 请确保手机连接正常，然后重新执行host!!! ")
             return
         }
-        project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
-        project.logger.error("==fastdex app  sendResourcesApk: ${sendResourcesApk} , sendPatchDex: ${sendPatchDex}, sendMergedDex: ${sendMergedDex}")
+        println("==fastdex receive: ${runtimeMetaInfo}")
+        println("==fastdex app  sendResourcesApk: ${sendResourcesApk} , sendPatchDex: ${sendPatchDex}, sendMergedDex: ${sendMergedDex}")
 
         if (nothingChanged) {
-            fastdexInstantRun.setInstallApk(false)
+//            fastdexInstantRun.setInstallApk(false)
             return
+
+
         }
         File mergedPatchDex = FastdexUtils.getMergedPatchDex(fastdexVariant.project,fastdexVariant.variantName)
         File patchDex = FastdexUtils.getPatchDexFile(fastdexVariant.project,fastdexVariant.variantName)
@@ -127,12 +135,15 @@ class FastdexPatchTask extends DefaultTask {
             changeCount += 1
         }
 
+
         if (sendPatchDex) {
             changeCount += 1
+            sendPatchDex=true
         }
 
         if (sendMergedDex) {
             changeCount += 1
+            sendMergedDex=true
         }
 
         long start = System.currentTimeMillis()
@@ -146,7 +157,7 @@ class FastdexPatchTask extends DefaultTask {
 
                     if (sendResourcesApk) {
                         String path = fastdexVariant.metaInfo.resourcesVersion + ShareConstants.RES_SPLIT_STR + ShareConstants.RESOURCE_APK_FILE_NAME
-                        project.logger.error("==fastdex write ${resourcesApk} ,path: " + path)
+                        println("==fastdex write ${resourcesApk} ,path: " + path)
                         output.writeUTF(path)
                         byte[] bytes = FileUtils.readContents(resourcesApk)
                         output.writeInt(bytes.length)
@@ -155,7 +166,7 @@ class FastdexPatchTask extends DefaultTask {
 
                     if (sendPatchDex) {
                         String path = fastdexVariant.metaInfo.patchDexVersion + ShareConstants.RES_SPLIT_STR + ShareConstants.PATCH_DEX
-                        project.logger.error("==fastdex write ${patchDex}, path: " + path)
+                        println("==fastdex write ${patchDex}, path: " + path)
                         output.writeUTF(path)
                         byte[] bytes = FileUtils.readContents(patchDex)
                         output.writeInt(bytes.length)
@@ -164,7 +175,7 @@ class FastdexPatchTask extends DefaultTask {
 
                     if (sendMergedDex) {
                         String path = fastdexVariant.metaInfo.mergedDexVersion + ShareConstants.RES_SPLIT_STR + ShareConstants.MERGED_PATCH_DEX
-                        project.logger.error("==fastdex write ${mergedPatchDex} ,path: " + path)
+                        println("==fastdex write ${mergedPatchDex} ,path: " + path)
                         output.writeUTF(path)
                         byte[] bytes = FileUtils.readContents(mergedPatchDex)
                         output.writeInt(bytes.length)
@@ -184,7 +195,7 @@ class FastdexPatchTask extends DefaultTask {
                 }
             })
             long end = System.currentTimeMillis()
-            project.logger.error("==fastdex send patch data success. use: ${end - start}ms")
+            println("==fastdex send patch data success. use: ${end - start}ms")
 
             //app不在后台、补丁发送失败、补丁中包含dex并且有设置使用命令强制重启
             //当前的activity栈如果只有一个activity并且是启动页activity不使用adb命令强制重启
@@ -192,13 +203,17 @@ class FastdexPatchTask extends DefaultTask {
                 killApp()
                 fastdexInstantRun.startBootActivity()
             }
-            fastdexInstantRun.setInstallApk(false)
+//            fastdexInstantRun.setInstallApk(false)
         } catch (Throwable e) {
             if (!(e instanceof FastdexRuntimeException)) {
                 println("==fastdex send patch fail: " + e.message)
             }
+            println("==fastdex 请确保手机连接正常，然后重新执行host!!! ")
         }
     }
+
+
+
 
     def killApp() {
         FastdexInstantRun fastdexInstantRun = fastdexVariant.fastdexInstantRun

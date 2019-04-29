@@ -21,7 +21,7 @@ class FastdexExtension {
     /**
      * 是否换成fastdex的编译方式
      */
-    boolean useCustomCompile = false
+    boolean useCustomCompile = true//xiongtj
 
     /**
      * 每次都参与dex生成的class
