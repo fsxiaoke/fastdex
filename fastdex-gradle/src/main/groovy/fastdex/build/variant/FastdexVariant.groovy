@@ -190,6 +190,7 @@ class FastdexVariant {
 
         projectSnapshoot.prepareEnv()
         if(fastdexInstantRun.manifestChanged){//minifest改变不走增量
+            println("==fastdex manifestChanged")
             delCache()
             hasDexCache=false
 
