@@ -113,7 +113,7 @@ class FastdexPatchTask extends DefaultTask {
             if (!(e instanceof FastdexRuntimeException)) {
                 println("==fastdex ping installed app fail: " + e.message)
             }
-            throw new FastdexRuntimeException("==fastdex 请确保手机连接正常，然后重新执行host!!! ")
+            throw new FastdexRuntimeException("==fastdex 请确保手机连接正常，fastdex进程开启，然后重新执行host!!! ")
 
         }
         println("==fastdex receive: ${runtimeMetaInfo}")
@@ -208,7 +208,7 @@ class FastdexPatchTask extends DefaultTask {
             if (!(e instanceof FastdexRuntimeException)) {
                 println("==fastdex send patch fail: " + e.message)
             }
-            throw new FastdexRuntimeException("==fastdex 请确保手机连接正常，然后重新执行host!!! ")
+            throw new FastdexRuntimeException("==fastdex 请确保手机连接正常，fastdex进程开启，然后重新执行host!!! ")
         }
     }
 

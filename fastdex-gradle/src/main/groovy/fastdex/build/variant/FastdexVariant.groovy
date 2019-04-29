@@ -183,7 +183,19 @@ class FastdexVariant {
                     e.printStackTrace()
                 }
                 println("==fastdex ${e.getMessage()}")
-                delCache()
+                //删掉classes目录和transforms目录，是为了重新触发java编译和dex transform
+                File classesDir = androidVariant.getVariantData().getScope().getJavaOutputDir()
+                classesDir.deleteDir()
+                File transformsDir = new File(androidVariant.getVariantData().getScope().getGlobalScope().getIntermediatesDir(), "/transforms")
+                transformsDir.deleteDir()
+                File apkLocationDir = GradleUtils.getApkLocation(androidVariant)
+                apkLocationDir.deleteDir()
+
+                println("==fastdex delete ${classesDir}")
+                println("==fastdex delete ${transformsDir}")
+                println("==fastdex delete ${apkLocationDir}")
+
+                println("==fastdex we will remove ${variantName.toLowerCase()} cache")
                 hasDexCache = false
             }
         }
@@ -191,9 +203,9 @@ class FastdexVariant {
         projectSnapshoot.prepareEnv()
         if(fastdexInstantRun.manifestChanged){//minifest改变不走增量
             println("==fastdex manifestChanged")
-            delCache()
+            FastdexUtils.cleanCache(project,variantName)
             hasDexCache=false
-
+            throw new FastdexRuntimeException("修改Manifest文件，请执行hostnew!!")
         }
 
         if (hasDexCache && metaInfo != null) {
@@ -227,19 +239,7 @@ class FastdexVariant {
     }
 
     def delCache(){
-        //删掉classes目录和transforms目录，是为了重新触发java编译和dex transform
-        File classesDir = androidVariant.getVariantData().getScope().getJavaOutputDir()
-        classesDir.deleteDir()
-        File transformsDir = new File(androidVariant.getVariantData().getScope().getGlobalScope().getIntermediatesDir(), "/transforms")
-        transformsDir.deleteDir()
-        File apkLocationDir = GradleUtils.getApkLocation(androidVariant)
-        apkLocationDir.deleteDir()
 
-        println("==fastdex delete ${classesDir}")
-        println("==fastdex delete ${transformsDir}")
-        println("==fastdex delete ${apkLocationDir}")
-
-        println("==fastdex we will remove ${variantName.toLowerCase()} cache")
     }
 
     boolean isDependenciesChanged,isDependenciesInited

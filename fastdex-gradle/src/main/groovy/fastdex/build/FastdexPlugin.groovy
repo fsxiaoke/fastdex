@@ -227,7 +227,7 @@ class FastdexPlugin implements Plugin<Project> {
                         fastdexVariant.fastdexInstantRun.onResourceChanged()
                     }
 
-                    fastdexVariant.prepareEnv() //xiongtj 提前加载
+
                     Task prepareTask = project.tasks.create("fastdexPrepareFor${variantName}", FastdexPrepareTask)
                     prepareTask.fastdexVariant = fastdexVariant
                     prepareTask.mustRunAfter variantOutput.processResources
