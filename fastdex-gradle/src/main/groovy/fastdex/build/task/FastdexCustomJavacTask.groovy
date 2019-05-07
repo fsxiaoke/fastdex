@@ -104,9 +104,18 @@ class FastdexCustomJavacTask extends DefaultTask {
             for (PathInfo pathInfo : pathInfos) {
                 if (pathInfo.relativePath.endsWith(ShareConstants.JAVA_SUFFIX)) {
                     String src = pathInfo.absoluteFile.getParent()
-                    int s = src.indexOf(File.separator+"src"+File.separator)
-                    if(s>0&&s<src.length()){
-                        String path = src.substring(s+4,src.length())
+
+                    int begin = src.indexOf("main"+File.separator+"java"+File.separator)
+                    if(begin>0){
+                        begin = begin+8
+                    }else{
+                        begin = src.indexOf(File.separator+"src"+File.separator)
+                        if(begin>0){
+                            begin = begin +4
+                        }
+                    }
+                    if(begin>0&&begin<src.length()){
+                        String path = src.substring(begin,src.length())
                         File desFile = new File(sourceDir,path)
                         fastdex.build.util.FileUtils.copy(pathInfo.absoluteFile,desFile)
                     }
