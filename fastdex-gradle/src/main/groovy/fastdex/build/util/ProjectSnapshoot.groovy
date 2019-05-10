@@ -90,8 +90,8 @@ class ProjectSnapshoot {
             DiffResultSet<FileDiffInfo> diffResultSet = andManifestDirectorySnapshoot.diff(oldAndManifestDirectorySnapshoot)
             if (diffResultSet != null && diffResultSet.changedDiffInfos.size() > 0) {
                 //如果manifest文件发生变化，改变buildMillis的值，这样走到免安装时就会重新安装(如果增加了四大组件必须重新安装app)
-                fastdexVariant.metaInfo.buildMillis = System.currentTimeMillis()
-                fastdexVariant.saveMetaInfo()
+//                fastdexVariant.metaInfo.buildMillis = System.currentTimeMillis() //增量不需要重新安装
+//                fastdexVariant.saveMetaInfo()
 
                 File androidManifestStatFile = FastdexUtils.getAndroidManifestStatFile(project,fastdexVariant.variantName)
                 andManifestDirectorySnapshoot.serializeTo(new FileOutputStream(androidManifestStatFile))

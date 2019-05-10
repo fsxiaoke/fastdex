@@ -72,10 +72,11 @@ class FastdexPatchTask extends DefaultTask {
                     info.buildMillis = input.readLong()
                     info.variantName = input.readUTF()
 
-                    if (fastdexVariant.metaInfo.buildMillis != info.buildMillis) {
-                        println("==fastdex buildMillis not equal, install apk")
-                        throw new FastdexRuntimeException()
-                    }
+                    //走增量不重新安装
+//                    if (fastdexVariant.metaInfo.buildMillis != info.buildMillis) {
+//                        println("==fastdex buildMillis not equal, install apk")
+//                        throw new FastdexRuntimeException()
+//                    }
                     if (!fastdexVariant.metaInfo.variantName.equals(info.variantName)) {
                         println("==variantName not equal, install apk")
                         throw new FastdexRuntimeException()
