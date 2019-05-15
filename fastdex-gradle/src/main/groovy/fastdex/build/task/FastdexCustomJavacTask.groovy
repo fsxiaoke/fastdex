@@ -390,13 +390,13 @@ class FastdexCustomJavacTask extends DefaultTask {
 
 
 
-
     def joinClasspath(Collection<String> collection) {
+        collection = cutClasspath(collection)
         StringBuilder sb = new StringBuilder()
-        String rootPath = project.rootDir.getAbsolutePath()
+//        String rootPath = project.rootDir.getAbsolutePath()
         boolean window = Os.isFamily(Os.FAMILY_WINDOWS)
         collection.each { path ->
-            path=path.replace(rootPath,".")
+//            path=path.replace(rootPath,".")
 
             sb.append(path)
             if (window) {
@@ -407,5 +407,47 @@ class FastdexCustomJavacTask extends DefaultTask {
             }
         }
         return sb
+    }
+
+    List cutClasspath(Collection<String> collection){
+        Map<String,Integer> countMap = new HashMap<>()
+        //获取重复的路径
+        for(String str:collection){
+            File file = new File(str)
+            String path = file.getParent()
+            if(!countMap.containsKey(path)){
+                countMap.put(path,1)
+            }else{
+                int count = countMap.get(path)+1
+                countMap.put(path,count)
+            }
+        }
+
+        String buildPath = FastdexUtils.getBuildDir(project).getAbsolutePath()
+        println(buildPath)
+        println("11111111111111111111111111111111111111111111111111111111111111111")
+        List newPathList = new ArrayList()
+        //删除不重复的路径
+        Iterator<Map.Entry<String, Integer>> entries = countMap.entrySet().iterator()
+        while (entries.hasNext()) {
+            Map.Entry<String, Integer> entry = entries.next()
+            if(entry.getValue()<=1){
+                entries.remove()
+            }else{
+                newPathList.add(entry.getKey()+File.separator+"*")
+            }
+        }
+
+        //添加*中不包含的classpath jar
+        for(String str:collection){
+            File file = new File(str)
+            String path = file.getParent()
+            if(!countMap.containsKey(path)){
+                newPathList.add(str)
+            }
+        }
+        println(newPathList)
+        println("222222222222222222222222222222222222222222222222222222")
+        return newPathList
     }
 }
