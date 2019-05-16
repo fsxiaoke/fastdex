@@ -33,14 +33,18 @@ class FastdexUtils {
      * @return
      */
     static final String getDxCmdPath(Project project) {
-        //xiongtj 优先使用d8
-        File dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}d8")
-        if(!dx.exists()){
-            dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}dx")
-        }
+        def ext = ""
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            return "${dx.absolutePath}.bat"
+            ext = ".bat"
         }
+        //xiongtj 优先使用d8
+        File dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}d8${ext}")
+        if(!dx.exists()){
+            dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}dx${ext}")
+        }
+//        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//            return "${dx.absolutePath}.bat"
+//        }
         return dx.getAbsolutePath()
     }
 
@@ -581,6 +585,7 @@ class FastdexUtils {
         int status = -1
         try {
             ProcessBuilder processBuilder = new ProcessBuilder((String[])cmdArgs.toArray())
+            processBuilder.redirectErrorStream(true) //xiongtj  d8命令一直等待
             if (directory != null) {
                 processBuilder.directory(directory)
             }
@@ -600,7 +605,7 @@ class FastdexUtils {
             reader.close()
             process.destroy()
         } catch (Throwable e) {
-
+            println(e.getStackTrace())
         }
         if (status != 0 && !background) {
             throw new FastdexRuntimeException("Command exec fail....")

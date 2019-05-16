@@ -27,9 +27,15 @@ class DexOperation {
         //TODO 补丁的方法数也有可能超过65535个，最好加上使dx生成多个dex的参数，但是一般补丁不会那么大所以暂时不处理
 //        if (Os.isFamily(Os.FAMILY_WINDOWS) || fastdexVariant.project.projectDir.absolutePath.contains(" ")) {
             //调用dx命令
-            cmdArgs.add(FastdexUtils.getDxCmdPath(fastdexVariant.project))
-            cmdArgs.add("--dex")
-            cmdArgs.add("--output=${patchDex}")
+            def dx = FastdexUtils.getDxCmdPath(fastdexVariant.project)
+            cmdArgs.add(dx)
+            if(dx.contains("d8")){
+                cmdArgs.add("--output=${patchDex.parentFile}")
+            }else{
+                cmdArgs.add("--dex")
+                cmdArgs.add("--output=${patchDex}")
+            }
+
             cmdArgs.add(patchJar.absolutePath)
 //        }
 //        else {
