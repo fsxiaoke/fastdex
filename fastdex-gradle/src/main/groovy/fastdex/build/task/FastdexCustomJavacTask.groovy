@@ -424,8 +424,6 @@ class FastdexCustomJavacTask extends DefaultTask {
         }
 
         String buildPath = FastdexUtils.getBuildDir(project).getAbsolutePath()
-        println(buildPath)
-        println("11111111111111111111111111111111111111111111111111111111111111111")
         List newPathList = new ArrayList()
         //删除不重复的路径
         Iterator<Map.Entry<String, Integer>> entries = countMap.entrySet().iterator()
@@ -446,8 +444,6 @@ class FastdexCustomJavacTask extends DefaultTask {
                 newPathList.add(str)
             }
         }
-        println(newPathList)
-        println("222222222222222222222222222222222222222222222222222222")
         return newPathList
     }
 }
