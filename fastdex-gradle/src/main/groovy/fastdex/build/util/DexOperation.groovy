@@ -30,7 +30,7 @@ class DexOperation {
             def dx = FastdexUtils.getDxCmdPath(fastdexVariant.project)
             cmdArgs.add(dx)
             if(dx.contains("d8")){
-                cmdArgs.add("--output=${patchDex.parentFile}")
+                cmdArgs.add("--output ${patchDex.parentFile}")
             }else{
                 cmdArgs.add("--dex")
                 cmdArgs.add("--output=${patchDex}")
