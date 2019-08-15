@@ -39,7 +39,7 @@ class FastdexUtils {
         }
         //xiongtj 优先使用d8
         File dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}d8${ext}")
-        if(!dx.exists()){
+        if(!Os.isFamily(Os.FAMILY_WINDOWS)||!dx.exists()){
             dx = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.buildToolsVersion.toString()}${File.separator}dx${ext}")
         }
 //        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
