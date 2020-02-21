@@ -5,7 +5,6 @@ import com.android.annotations.Nullable
 import com.android.build.api.transform.*
 import com.android.build.gradle.internal.LoggerWrapper
 import com.android.build.gradle.internal.pipeline.TransformManager
-import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.TransformInputUtil
 import com.android.builder.core.DexByteCodeConverter
 import com.android.builder.core.DexOptions
@@ -37,7 +36,7 @@ import java.lang.reflect.Field
 public class FsdexTransform extends Transform {
 
     private static
-    final LoggerWrapper logger = LoggerWrapper.getLogger(com.android.build.gradle.internal.transforms.DexTransform.class);
+    final LoggerWrapper logger = LoggerWrapper.getLogger(DexTransform.class);
 
     @NonNull
     private final DexOptions dexOptions;

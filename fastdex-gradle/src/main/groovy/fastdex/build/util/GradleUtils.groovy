@@ -44,7 +44,7 @@ class GradleUtils {
             }
         }
         else {
-            def variantScope = applicationVariant.variantData.getScope()
+           /* def variantScope = applicationVariant.variantData.getScope()
 
 //            def artifacts = com.android.build.gradle.internal.ide.ArtifactDependencyGraph.getAllArtifacts(variantScope,  com.android.build.gradle.internal.publishing.AndroidArtifacts.ConsumedConfigType.COMPILE_CLASSPATH,null);
             //ArtifactDependencyGraph这个api3.0.0才有，fastdex依赖的是低版本的android gradle编译通不过,所以通过反射调用
@@ -66,6 +66,8 @@ class GradleUtils {
                 }
 
             }
+
+            */
 
         }
         return result

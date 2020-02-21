@@ -4,10 +4,10 @@ import com.android.build.api.transform.Transform
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.build.gradle.internal.pipeline.TransformTask
-import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.JarMergingTransform
 import fastdex.build.extension.FastdexExtension
 import fastdex.build.fs.AutoDependencies
+import fastdex.build.fs.DexTransform
 import fastdex.build.fs.FsdexTransform
 import fastdex.build.task.*
 import fastdex.build.transform.FastdexDexBuilderTransform
@@ -243,14 +243,17 @@ class FastdexPlugin implements Plugin<Project> {
                     Task transformDexArchiveWithDexMergerTask = getTransformDexArchiveWithDexMergerTask(project,variantName)
                     Task transformClassesWithPreDexTask = getTransformClassesWithPreDexTask(project,variantName)
                     Task assembleTask = getAssembleTask(project,variantName)
-                    File classesDir = variant.getVariantData().getScope().getJavaOutputDir()
+                   // println(variant.getVariantData()+"0000000000000000000000000000")
+                   // println(variant.getVariantData()+"111111111111111111111")
+                   // println(variant.getVariantData().getScope()+"2222222222222222222")
+                  //  File classesDir = variant.getVariantData().getScope().getJavaOutputDir()
                     boolean hasDexCache = FastdexUtils.hasDexCache(project,variantName)
 
                     FastdexScanAptOutputTask scanAptOutputTask = project.tasks.create("fastdexScanAptOutputFor${variantName}", FastdexScanAptOutputTask)
                     scanAptOutputTask.fastdexVariant = fastdexVariant
                     println("useCustomCompile:"+configuration.useCustomCompile)
                     boolean enableCompileCustomJavac=false
-                    if (configuration.useCustomCompile && hasDexCache && FileUtils.dirExists(classesDir.absolutePath)) {
+                    if (configuration.useCustomCompile && hasDexCache) {
                         enableCompileCustomJavac=true
                         Task customJavacTask = project.tasks.create("fastdexCustomCompile${variantName}JavaWithJavac", FastdexCustomJavacTask)
                         customJavacTask.fastdexVariant = fastdexVariant
